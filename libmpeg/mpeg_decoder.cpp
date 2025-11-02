@@ -400,15 +400,88 @@ namespace libmedia_transfer_protocol {
 							pse_length.m_byte[0] = PSEPack->PackLength.m_byte[1];
 							pse_length.m_byte[1] = PSEPack->PackLength.m_byte[0];
 
+
+
+							
+
 							// 去除填充数据大小得到数据大小
 							size_t playload_size = pse_length.length - 2 - 1 - PSEPack->stuffing_length;
 							if (playload_size > 0)
 							{
 								const uint8_t *payload = ps + sizeof(program_stream_e) + PSEPack->stuffing_length;
 
+								// pts flag
+								if (PSEPack->PackInfo1[1] == '\80')
+								{
+
+									// ps +9    ==> 5byte pts 
+									int64_t   pts = ps[9];
+									pts <<= 8;// sizeof(char);
+									pts += ps[10];
+									pts <<= 8;// sizeof(char);
+									pts += ps[11];
+									pts <<= 8;// sizeof(char);
+									pts += ps[12];
+									pts <<= 8;// sizeof(char);
+									pts += ps[13];
+									pts <<= 8;// sizeof(char);
+									//pts <<= 8;// sizeof(char);
+									//LIBMPEG_LOG_T_F(LS_INFO) << "pts :" << pts;
+									audio_pts_ = pts / 90;
+								}
+								if ((PSEPack->PackInfo1[1] & 0xe0) == 0x20) {
+									//dts =
+									//	pts = get_pts(s->pb, c);
+									//len -= 4;
+									//if (c & 0x10) {
+									//	dts = get_pts(s->pb, -1);
+									//	len -= 5;
+									//}
+									int64_t   pts = ps[9];
+									pts <<= 8;// sizeof(char);
+									pts += ps[10];
+									pts <<= 8;// sizeof(char);
+									pts += ps[11];
+									pts <<= 8;// sizeof(char);
+									pts += ps[12];
+									pts <<= 8;// sizeof(char);
+									pts += ps[13];
+									pts <<= 8;// sizeof(char);
+									//LIBMPEG_LOG_T_F(LS_INFO) << "===========>pts :" << pts;
+									audio_pts_ = pts / 90;
+								}
+								else if ((PSEPack->PackInfo1[1] & 0xc0) == 0x80) {
+									/* mpeg 2 PES */
+									//flags = avio_r8(s->pb);
+									//header_len = avio_r8(s->pb);
+									//len -= 2;
+									//if (header_len > len)
+									//	goto error_redo;
+									//len -= header_len;
+									//if (flags & 0x80) {
+									//	dts = pts = get_pts(s->pb, -1);
+									//	header_len -= 5;
+									//	if (flags & 0x40) {
+									//		dts = get_pts(s->pb, -1);
+									//		header_len -= 5;
+									//	}
+									//}
+									int64_t   pts = ps[9];
+									pts <<= 8;// sizeof(char);
+									pts += ps[10];
+									pts <<= 8;// sizeof(char);
+									pts += ps[11];
+									pts <<= 8;// sizeof(char);
+									pts += ps[12];
+									pts <<= 8;// sizeof(char);
+									pts += ps[13];
+									pts <<= 8;// sizeof(char);
+									//LIBMPEG_LOG_T_F(LS_INFO) << "===========>pts :" << pts;
+									audio_pts_ = pts / 90;
+								}
 
 
-								SignalRecvAudioFrame(std::move((rtc::CopyOnWriteBuffer(payload, playload_size))));
+								SignalRecvAudioFrame(std::move((rtc::CopyOnWriteBuffer(payload, playload_size))), audio_pts_);
 								//if (callback_)
 								//{
 								//	rtc::Buffer frame(payload, playload_size);

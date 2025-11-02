@@ -60,7 +60,7 @@ namespace  libmedia_transfer_protocol {
 
 		public:
 			sigslot::signal1<libmedia_codec::EncodedImage> SignalRecvVideoFrame;
-			sigslot::signal1<rtc::CopyOnWriteBuffer> SignalRecvAudioFrame;
+			sigslot::signal2<rtc::CopyOnWriteBuffer, int64_t > SignalRecvAudioFrame;
 			//void RegisterDecodeCompleteCallback(VideoReceiveStream * callback)
 			//{
 			//	callback_ = callback;
@@ -72,6 +72,7 @@ namespace  libmedia_transfer_protocol {
 			int32_t                 read_byte_;
 			// VideoReceiveStream *     callback_ ;
 			int64_t                     video_pts_ = 0;
+			int64_t                     audio_pts_ = 0;
 		};
 
 

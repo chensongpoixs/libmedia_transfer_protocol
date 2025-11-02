@@ -446,8 +446,78 @@ namespace libmedia_transfer_protocol
 		}
 		bool FlvContext::SendFlvAudioFrame(const rtc::CopyOnWriteBuffer & frame, uint64_t timestamp)
 		{
+			/*
+			
+|名称	|比特数|	描述|
+|:---:|:---:|:---:|
+|SoundFormat	|4	|音频编码格式|
+|SoundRate	|2	|采样率|
+|SoundSize	|1|	采样精度，0表示8-bit，1表示16-bit|
+|SoundType	|1	|声道类型，0表示单声道，1表示立体声|
+|SoundData|	N*8	|音频数据|
+			*/
+			 
+		 
+
+			//if (FLV_AUDIO_AAC == audio->codecid)
+			{
+				uint8_t * buffer = out_buffer_; 
+				buffer[0] = ( 10<< 4 /*audio->codecid aac */ /* <<4 */) /* SoundFormat */ | (3 << 2) /* 44k-SoundRate */ | (1 << 1) /* 16-bit samples */ | 1 /* Stereo sound */;
+				buffer[1] = 1;// audio->avpacket; // AACPacketType
+				memcpy(buffer + 2, frame.data(), frame.size());
+				WriteFlvTag(libflv::kFlvMsgTypeAudio, out_buffer_,
+					frame.size() +2, timestamp - start_timestamp_);
+				//return 2;
+			}
+			//else if (FLV_AUDIO_OPUS == audio->codecid || FLV_AUDIO_FLAC == audio->codecid || FLV_AUDIO_AC3 == audio->codecid || FLV_AUDIO_EAC3 == audio->codecid)
+			//{
+			//	if (len < 5)
+			//		return -1;
+
+			//	assert(FLV_SEQUENCE_HEADER == audio->avpacket || FLV_AVPACKET == audio->avpacket);
+			//	buf[0] = FLV_AUDIO_FOURCC | audio->avpacket;
+			//	switch (audio->codecid)
+			//	{
+			//	case FLV_AUDIO_FLAC:
+			//		buf[1] = (FLV_AUDIO_FOURCC_FLAC >> 24) & 0xFF;
+			//		buf[2] = (FLV_AUDIO_FOURCC_FLAC >> 16) & 0xFF;
+			//		buf[3] = (FLV_AUDIO_FOURCC_FLAC >> 8) & 0xFF;
+			//		buf[4] = (FLV_AUDIO_FOURCC_FLAC) & 0xFF;
+			//		break;
+
+			//	case FLV_AUDIO_AC3:
+			//		buf[1] = (FLV_AUDIO_FOURCC_AC3 >> 24) & 0xFF;
+			//		buf[2] = (FLV_AUDIO_FOURCC_AC3 >> 16) & 0xFF;
+			//		buf[3] = (FLV_AUDIO_FOURCC_AC3 >> 8) & 0xFF;
+			//		buf[4] = (FLV_AUDIO_FOURCC_AC3) & 0xFF;
+			//		break;
+
+			//	case FLV_AUDIO_EAC3:
+			//		buf[1] = (FLV_AUDIO_FOURCC_EAC3 >> 24) & 0xFF;
+			//		buf[2] = (FLV_AUDIO_FOURCC_EAC3 >> 16) & 0xFF;
+			//		buf[3] = (FLV_AUDIO_FOURCC_EAC3 >> 8) & 0xFF;
+			//		buf[4] = (FLV_AUDIO_FOURCC_EAC3) & 0xFF;
+			//		break;
+
+			//	case FLV_AUDIO_OPUS:
+			//		buf[1] = (FLV_AUDIO_FOURCC_OPUS >> 24) & 0xFF;
+			//		buf[2] = (FLV_AUDIO_FOURCC_OPUS >> 16) & 0xFF;
+			//		buf[3] = (FLV_AUDIO_FOURCC_OPUS >> 8) & 0xFF;
+			//		buf[4] = (FLV_AUDIO_FOURCC_OPUS) & 0xFF;
+			//		break;
+			//	}
+			//	return 5;
+			//}
+			//else
+			//{
+			//	buf[0] = (audio->codecid /* <<4 */) | ((audio->rate & 0x03) << 2) | ((audio->bits & 0x01) << 1) | (audio->channels & 0x01);
+			//	return 1;
+			//}
 
 
+
+			
+			return true;
 			// sps
 			// pps 
 			// idr 

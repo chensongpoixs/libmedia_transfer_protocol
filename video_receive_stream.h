@@ -83,7 +83,7 @@ namespace libmedia_transfer_protocol {
 
 		void OnVideoFrame(libmedia_codec::EncodedImage  image );
 
-		void OnAudioFrame(rtc::CopyOnWriteBuffer frame);
+		void OnAudioFrame(rtc::CopyOnWriteBuffer frame, int64_t  pts);
 		virtual void OnRtpPacket(const RtpPacketReceived& packet) override;
 	private:
 		std::unique_ptr<libmedia_codec::H264Decoder>        decoder_;

@@ -78,7 +78,7 @@ namespace libmedia_transfer_protocol {
 	{
 		decoder_->Decode(image, true, 1);
 	}
-	void VideoReceiveStream::OnAudioFrame(rtc::CopyOnWriteBuffer frame)
+	void VideoReceiveStream::OnAudioFrame(rtc::CopyOnWriteBuffer frame, int64_t  pts)
 	{
 		//·ÖÀë adts 
 #if 0
