@@ -77,12 +77,19 @@ namespace libmedia_transfer_protocol {
 			static const std::string ice_pwd_token = "a=ice-pwd:";
 			static const std::string  fingerprint_token = "a=fingerprint:";
 			static const std::string   role_token = "a=setup:";
+			static const std::string   ssrc				= "a=ssrc:";
+			static const std::string   ssrc_group	= "a=ssrc-group:";
+			static const std::string   fmtp = "a=fmtp:";
 		}
 
-		RtcSdp::RtcSdp() {}
+		RtcSdp::RtcSdp()
+		: rtc_sdp_type_(kRtcSdpPlay){}
 		RtcSdp::  ~RtcSdp() {}
 
-
+		void RtcSdp::SetSdpType(RtcSdpType  rtc_sdp_type)
+		{
+			rtc_sdp_type_ = rtc_sdp_type;
+		}
 		bool RtcSdp::Decode(const std::string &sdp)
 		{
 			std::vector<std::string>    list;
@@ -155,6 +162,93 @@ namespace libmedia_transfer_protocol {
 					{
 						video_payload_type_ = pt;
 						LIBRTC_LOG(LS_INFO) << "video_payload_type:" << video_payload_type_;
+					}
+					else if (video_payload_rtx_type_ == -1 && name == "rtx/90000")
+					{
+						//video_payload_rtc_type_ = pt;
+						LIBRTC_LOG(LS_INFO) << "pt:" << pt;
+					}
+				}
+				else if (StringUtils::StartsWith(line, fmtp))
+				{
+					// a=fmtp:122 apt=102
+					std::string content = line.substr(ssrc.size());
+					auto pos = content.find_first_of(" ");
+					if (pos == std::string::npos)
+					{
+						continue;
+					}
+					int32_t fmtp = std::atoi(content.substr(0, pos).c_str());
+
+					//ssrc_group_ = content.substr(0, pos);
+					//LIBRTC_LOG(LS_INFO) << "fmtp:" << fmtp;
+					  pos = content.find_first_of("=");
+					int32_t apt = std::atoi(content.substr(pos +1, content.size()).c_str());
+					
+					if (apt == video_payload_type_)
+					{
+						LIBRTC_LOG(LS_INFO) << "fmtp:" << fmtp << ", apt : " << apt;
+						video_payload_rtx_type_ = fmtp;
+					}
+
+				}
+				else if (StringUtils::StartsWith(line, ssrc_group))
+				{
+					//if (rtc_sdp_type_ == kRtcSdpPush)
+					{
+						//a=ssrc-group:FID 3094518028 3431722997
+
+					}
+
+
+					std::string content = line.substr(ssrc.size());
+					auto pos = content.find_first_of(" ");
+					if (pos == std::string::npos)
+					{
+						continue;
+					}
+
+					ssrc_group_ = content.substr(0, pos);
+					LIBRTC_LOG(LS_INFO) << "ssrc_group:" << ssrc_group_;
+
+
+				}
+				else if (StringUtils::StartsWith(line, ssrc))
+				{
+					std::string content = line.substr(ssrc.size());
+					auto pos = content.find_first_of(" ");
+					if (pos == std::string::npos)
+					{
+						continue;
+					}
+
+					int32_t type_ssrc = std::atol(content.substr(0, pos).c_str());
+					 
+					if (0 == audio_ssrc_ || type_ssrc == audio_ssrc_)
+					{
+						// a=ssrc:2334762070 cname:PC7pg9AJa4C7K8dZ
+						audio_ssrc_ = type_ssrc;
+						LIBRTC_LOG(LS_INFO) << "audio ssrc:" << audio_ssrc_;
+					}
+					else if (0 == video_ssrc_ || video_ssrc_ == type_ssrc)
+					{
+					/* 
+						a=ssrc:3094518028 cname:PC7pg9AJa4C7K8dZ
+						a=ssrc:3094518028 msid:qKdR1YckS50GVYklSxB3XsCGIAw1neUbWeza c997d2f0-0d7a-4572-aaef-facc21099943
+						a=ssrc:3431722997 cname:PC7pg9AJa4C7K8dZ
+						a=ssrc:3431722997 msid:qKdR1YckS50GVYklSxB3XsCGIAw1neUbWeza c997d2f0-0d7a-4572-aaef-facc21099943
+					*/
+						video_ssrc_ = type_ssrc;
+						LIBRTC_LOG(LS_INFO) << "video ssrc:" << video_ssrc_;
+					}
+					else if (0 == video_rtx_ssrc_ && video_ssrc_!= type_ssrc)
+					{
+						video_rtx_ssrc_ = type_ssrc;
+						LIBRTC_LOG(LS_INFO) << "video rtx ssrc:" << video_rtx_ssrc_;
+					}
+					else
+					{
+						LIBRTC_LOG_T_F(LS_WARNING) << "not  type  ssrc: " << line;
 					}
 				}
 			}
@@ -280,23 +374,38 @@ namespace libmedia_transfer_protocol {
 				ss << finger_prints.str();
 				ss << "a=setup:passive\n"; 
 				
-				ss << "a=sendonly\n";
+				if (rtc_sdp_type_ == kRtcSdpPlay)
+				{
+					ss << "a=sendonly\n";
+				}
+				else if (rtc_sdp_type_ == kRtcSdpPush)
+				{
+					ss << "a=sendrecv\n";
+				}
+				else
+				{
+					LIBRTC_LOG_T_F(LS_WARNING) << "rtc_sdp_type:" << rtc_sdp_type_;
+				}
 				ss << "a=rtcp-mux\n";
 				ss << "a=rtcp-rsize\n";
 				ss << "a=rtpmap:" << audio_payload_type_ << " opus/48000/2\n";
 				ss << "a=fmtp:" << audio_payload_type_ << " minptime=10;stereo=1;useinbandfec=1\n";
 				ss << "a=rtcp-fb:" << audio_payload_type_ << " transport-cc\n";
 				ss << "a=rtcp-fb:" << audio_payload_type_ << " nack\n";
-				ss << "a=ssrc:" << audio_ssrc_ << " cname:" << stream_name_ << "\n";
-				ss << "a=ssrc:" << audio_ssrc_ << " msid:" << stream_name_ << " " << stream_name_ << "_audio\n";
-				ss << "a=ssrc:" << audio_ssrc_ << " mslabel:" << stream_name_ << "\n";
-				ss << "a=ssrc:" << audio_ssrc_ << " label:" << stream_name_ << "_audio\n";
+				if (rtc_sdp_type_ == kRtcSdpPlay)
+				{
+
+					ss << "a=ssrc:" << audio_ssrc_ << " cname:" << stream_name_ << "\n";
+					ss << "a=ssrc:" << audio_ssrc_ << " msid:" << stream_name_ << " " << stream_name_ << "_audio\n";
+					ss << "a=ssrc:" << audio_ssrc_ << " mslabel:" << stream_name_ << "\n";
+					ss << "a=ssrc:" << audio_ssrc_ << " label:" << stream_name_ << "_audio\n";
+				}
 			}
 			if (video_payload_type_ != -1)
 			{
 				//std::vector<int32_t>
-#if 0
-				ss << "m=video 9 UDP/TLS/RTP/SAVPF " << video_payload_type_ << "\n"; 
+#if 1
+				ss << "m=video 9 UDP/TLS/RTP/SAVPF " << video_payload_type_ << " " << video_payload_rtx_type_ << "\n";
 #else
 				ss << "m=video 9 UDP/TLS/RTP/SAVPF 96 97 98 99 100 101 35 36 37 38 103 104 107 108 109 114 115 116 117 118 39 40 41 42 43 44 45 46 47 48 119 120 121 122 49 50 51 52 123 124 125 53\n";
 
@@ -309,10 +418,22 @@ namespace libmedia_transfer_protocol {
 				ss << finger_prints.str();
 				ss << "a=setup:passive\n";
 				ss << "a=candidate:0 1 udp 2130706431 " << server_addr_ << " " << server_port_ << " typ host generation 0\n";
-				ss << "a=sendonly\n";
+				
+				if (rtc_sdp_type_ == kRtcSdpPlay)
+				{
+					ss << "a=sendonly\n";
+				}
+				else if (rtc_sdp_type_ == kRtcSdpPush)
+				{
+					ss << "a=sendrecv\n";
+				}
+				else
+				{
+					LIBRTC_LOG_T_F(LS_WARNING) << "rtc_sdp_type:" << rtc_sdp_type_;
+				}
 				ss << "a=rtcp-mux\n";
 				ss << "a=rtcp-rsize\n";
-#if 0
+#if 1
 				ss << "a=rtpmap:" << video_payload_type_ << " H264/90000\n";
 				/*
 				 a=fmtp:123 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=64001f​
@@ -333,7 +454,9 @@ namespace libmedia_transfer_protocol {
 				*/
 				// a=fmtp:41 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=f4001f
 				ss << "a=fmtp:"<< video_payload_type_ <<" level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f\n";
-				
+
+				ss << "a=rtpmap:" << video_payload_rtx_type_ << " rtx/90000\n";
+				ss << "a=fmtp:" << video_payload_rtx_type_ << " apt=" << video_payload_type_ << "\n";
 				ss << "a=rtcp-fb:" << video_payload_type_ << " ccm fir\n";
 				ss << "a=rtcp-fb:" << video_payload_type_ << " goog-remb\n";
 				ss << "a=rtcp-fb:" << video_payload_type_ << " nack\n";
@@ -559,11 +682,13 @@ namespace libmedia_transfer_protocol {
 
 #endif 
 
-
-				ss << "a=ssrc:" << video_ssrc_ << " cname:" << stream_name_ << "\n";
-				ss << "a=ssrc:" << video_ssrc_ << " msid:" << stream_name_ << " " << stream_name_ << "_video\n";
-				ss << "a=ssrc:" << video_ssrc_ << " mslabel:" << stream_name_ << "\n";
-				ss << "a=ssrc:" << video_ssrc_ << " label:" << stream_name_ << "_video\n";
+				if (rtc_sdp_type_ == kRtcSdpPlay)
+				{
+					ss << "a=ssrc:" << video_ssrc_ << " cname:" << stream_name_ << "\n";
+					ss << "a=ssrc:" << video_ssrc_ << " msid:" << stream_name_ << " " << stream_name_ << "_video\n";
+					ss << "a=ssrc:" << video_ssrc_ << " mslabel:" << stream_name_ << "\n";
+					ss << "a=ssrc:" << video_ssrc_ << " label:" << stream_name_ << "_video\n";
+				}
 			}
 
 			return ss.str();

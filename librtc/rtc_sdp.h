@@ -34,6 +34,16 @@
 
 namespace libmedia_transfer_protocol {
 	namespace librtc {
+
+		enum RtcSdpType
+		{
+			kRtcSdpNone = 0,
+			kRtcSdpPlay,
+			kRtcSdpPush
+			
+		};
+		 
+
 		class RtcSdp
 		{
 		public:
@@ -41,6 +51,7 @@ namespace libmedia_transfer_protocol {
 			virtual ~RtcSdp();
 
 		public:
+			void SetSdpType(RtcSdpType  rtc_sdp_type);
 			bool Decode(const std::string &sdp);
 			const std::string &GetRemoteUFrag() const;
 			const std::vector<libssl::Fingerprint> &GetLocalFingerprints()const;
@@ -65,6 +76,7 @@ namespace libmedia_transfer_protocol {
 		private:
 			int32_t audio_payload_type_{ -1 };
 			int32_t video_payload_type_{ -1 };
+			int32_t video_payload_rtx_type_{-1};
 			// 远端的用户名和密码
 			std::string remote_ufrag_;
 			/*  a = setup 主要是表示dtls的协商过程中角色的问题，谁是客户端，谁是服务器
@@ -80,10 +92,17 @@ namespace libmedia_transfer_protocol {
 			libssl::Fingerprint  remote_fingerprint_;
 			std::vector<libssl::Fingerprint>   finger_prints_;
 			int32_t video_ssrc_{ 0 };
+			int32_t video_rtx_ssrc_{ 0 };
 			int32_t audio_ssrc_{ 0 };
 			int16_t server_port_{ 0 };
 			std::string server_addr_;
 			std::string stream_name_;
+
+
+			RtcSdpType      rtc_sdp_type_{ kRtcSdpPlay };
+			std::string     ssrc_group_{ "FID" }; // video rtx 
+
+
 		};
 	}
 	
