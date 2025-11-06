@@ -80,6 +80,17 @@ namespace  libmedia_transfer_protocol {
 				const int64_t&>
 				SignalReadPacket;
 
+
+			// socket udp 
+			sigslot::signal5<rtc::Socket*,
+				const uint8_t*,
+				size_t,
+				const rtc::SocketAddress&,
+				// TODO(bugs.webrtc.org/9584): Change to passing the int64_t
+				// timestamp by value.
+				const int64_t >
+				SignalSyncReadPacket;
+
 		public:
 
 			rtc::Thread* signaling_thread() { return context_->signaling_thread(); }
@@ -100,11 +111,16 @@ namespace  libmedia_transfer_protocol {
 			void OnAddressReady(rtc::AsyncPacketSocket* socket, const rtc::SocketAddress&addr);
 			void OnSend(rtc::AsyncPacketSocket* socket);
 			void OnClose(rtc::AsyncPacketSocket* socket, int32_t);
+
+
+			// 
+			void OnRead(rtc::Socket* socket);
 		public:
 		private:
 			rtc::scoped_refptr<libp2p_peerconnection::ConnectionContext>	context_;
 			rtc::SocketAddress               server_address_;
 			std::unique_ptr<rtc::AsyncPacketSocket>      udp_control_socket_;
+			std::unique_ptr<rtc::Socket> control_socket_;
  
 		};
 	}

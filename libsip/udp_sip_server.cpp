@@ -59,11 +59,12 @@ namespace libmedia_transfer_protocol
 	 
 
 		void UdpSipServer::InitSocketSignals()
-		{
+		{ 
 			control_socket_->SignalCloseEvent.connect(this, &UdpSipServer::OnClose);
 			control_socket_->SignalConnectEvent.connect(this, &UdpSipServer::OnConnect);
 			control_socket_->SignalReadEvent.connect(this, &UdpSipServer::OnRead);
 			control_socket_->SignalWriteEvent.connect(this, &UdpSipServer::OnWrite);
+ 
 		}
 		void UdpSipServer::OnConnect(rtc::Socket* socket)
 		{

@@ -82,6 +82,8 @@ namespace libmedia_transfer_protocol {
 			void  OnRecvPacket(rtc::AsyncPacketSocket * socket, const uint8_t * data, size_t len,
 				const rtc::SocketAddress & addr, const int64_t & ms);
 			 
+			void  OnRecvPacket(rtc::Socket* socket, const uint8_t* data, size_t len,
+				const rtc::SocketAddress& addr, const int64_t  ms);
 		public:
 			rtc::Thread* signaling_thread() { return udp_server_->signaling_thread(); }
 			const rtc::Thread* signaling_thread() const { return udp_server_->signaling_thread(); }
@@ -123,6 +125,41 @@ namespace libmedia_transfer_protocol {
 				// timestamp by value.
 				const int64_t&>
 				SignalRtcpPacket;
+
+
+		public:
+			sigslot::signal5<rtc::Socket*,
+				const uint8_t*,
+				size_t,
+				const rtc::SocketAddress&,
+				// TODO(bugs.webrtc.org/9584): Change to passing the int64_t
+				// timestamp by value.
+				const int64_t&>
+				SignalSyncStunPacket;
+			sigslot::signal5<rtc::Socket*,
+				const uint8_t*,
+				size_t,
+				const rtc::SocketAddress&,
+				// TODO(bugs.webrtc.org/9584): Change to passing the int64_t
+				// timestamp by value.
+				const int64_t&>
+				SignalSyncDtlsPacket;
+			sigslot::signal5<rtc::Socket*,
+				const uint8_t*,
+				size_t,
+				const rtc::SocketAddress&,
+				// TODO(bugs.webrtc.org/9584): Change to passing the int64_t
+				// timestamp by value.
+				const int64_t&>
+				SignalSyncRtpPacket;
+			sigslot::signal5<rtc::Socket*,
+				const uint8_t*,
+				size_t,
+				const rtc::SocketAddress&,
+				// TODO(bugs.webrtc.org/9584): Change to passing the int64_t
+				// timestamp by value.
+				const int64_t&>
+				SignalSyncRtcpPacket;
 
 
 

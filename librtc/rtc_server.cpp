@@ -33,6 +33,7 @@ namespace libmedia_transfer_protocol {
 
 			 // = std::make_unique<libnetwork::UdpServer>();
 			 udp_server_->SignalReadPacket.connect(this, &RtcServer::OnRecvPacket);
+			 udp_server_->SignalSyncReadPacket.connect(this, &RtcServer::OnRecvPacket);
 		}
 		 RtcServer::~RtcServer()
 		 {
@@ -144,6 +145,30 @@ namespace libmedia_transfer_protocol {
 			 {
 				 LIBRTC_LOG_T_F(LS_WARNING) << " recv unk type packet addr:" << addr.ToString();
 			 } 
+		 }
+
+		 void RtcServer::OnRecvPacket(rtc::Socket* socket, const uint8_t* data, size_t len, const rtc::SocketAddress& addr, const int64_t ms)
+		 {
+			 if (IsStun(data, len))
+			 {
+				 SignalSyncStunPacket(socket, data, len, addr, ms);
+			 }
+			 else if (IsDtls(data, len))
+			 {
+				 SignalSyncDtlsPacket(socket, data, len, addr, ms);
+			 }
+			 else if (IsRtp(data, len))
+			 {
+				 SignalSyncRtpPacket(socket, data, len, addr, ms);
+			 }
+			 else if (IsRtcp(data, len))
+			 {
+				 SignalSyncRtcpPacket(socket, data, len, addr, ms);
+			 }
+			 else
+			 {
+				 LIBRTC_LOG_T_F(LS_WARNING) << " recv unk type packet addr:" << addr.ToString();
+			 }
 		 }
 		 
 		 bool RtcServer::IsStun(const uint8_t * data, int32_t len)
