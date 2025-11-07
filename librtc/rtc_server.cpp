@@ -133,14 +133,15 @@ namespace libmedia_transfer_protocol {
 			 {
 				 SignalDtlsPacket(socket, data, len, addr, ms);
 			 }
-			 else if (IsRtp(data, len))
-			 {
-				 SignalRtpPacket(socket, data, len, addr, ms);
-			 }
 			 else if (IsRtcp(data, len))
 			 {
 				 SignalRtcpPacket(socket, data, len, addr, ms);
 			 }
+			 else if (IsRtp(data, len))
+			 {
+				 SignalRtpPacket(socket, data, len, addr, ms);
+			 }
+			 
 			 else
 			 {
 				 LIBRTC_LOG_T_F(LS_WARNING) << " recv unk type packet addr:" << addr.ToString();
