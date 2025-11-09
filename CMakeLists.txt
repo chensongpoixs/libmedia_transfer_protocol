@@ -115,6 +115,9 @@ rtp_rtcp/rtp_header_extension_map.cpp
 	libflv/*.h 
 	libflv/*.c 
 	libflv/*.cpp 
+	librtcp/*.h
+	librtcp/*.cpp 
+	librtcp/*.hpp 
 ) 
 
 
