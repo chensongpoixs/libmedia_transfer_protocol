@@ -17,7 +17,7 @@
 
  ******************************************************************************/
 #include "libmedia_transfer_protocol/librtc/dtls.h"
-#include "rtc_base/logging.h"
+//#include "rtc_base/logging.h"
 #include <openssl/asn1.h>
 #include <openssl/bn.h>
 #include <openssl/err.h>
@@ -25,6 +25,7 @@
 #include <openssl/rsa.h>
 #include <WinSock2.h>
 #include "rtc_base/thread.h"
+#include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
 namespace libmedia_transfer_protocol {
 
 	namespace libssl

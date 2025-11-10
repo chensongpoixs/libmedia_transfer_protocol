@@ -22,6 +22,7 @@
 #include "libmedia_codec/encoded_image.h"
 #include "libmedia_transfer_protocol/video_receive_stream.h"
 #include "libmedia_codec/audio_codec/audio_decoder.h"
+#include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
 extern "C" {
 	//#include "lib"
 	//#include "libavcodec/avcodec.h"

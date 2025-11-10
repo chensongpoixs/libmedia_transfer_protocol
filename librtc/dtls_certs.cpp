@@ -17,11 +17,14 @@
 
  ******************************************************************************/
 #include "libmedia_transfer_protocol/librtc/dtls_certs.h"
-#include "rtc_base/logging.h"
+ 
 #include "libmedia_transfer_protocol/librtc/dtls.h"
 #include <openssl/crypto.h>
 #include <openssl/rand.h>
 #include "libmedia_transfer_protocol/librtc/srtp_session.h"
+
+
+#include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
 namespace libmedia_transfer_protocol {
 	namespace libssl {
 

@@ -17,7 +17,7 @@
 
  ******************************************************************************/
 #include "libmedia_transfer_protocol/librtc/srtp_session.h"
-#include "rtc_base/logging.h"
+ 
 #include "srtp.h"
 #include "srtp.h"
 #include "usrsctp.h"
@@ -26,7 +26,7 @@
 #include "srtp_priv.h"
 #include "libmedia_transfer_protocol/librtc/rtc_errors.h"
 
-
+#include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
 
 namespace libmedia_transfer_protocol
 {

@@ -66,7 +66,7 @@ Interleaved Mode:
 #include "libmedia_transfer_protocol/string_utils.h"
 #include <iostream>
 #include "libmedia_transfer_protocol/librtc/dtls_certs.h"
-
+#include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
 namespace libmedia_transfer_protocol {
 	namespace librtc
 	{

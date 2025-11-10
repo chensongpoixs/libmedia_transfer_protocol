@@ -46,8 +46,9 @@ data ：          数据 - ，比如说RTP包，总长度与上面的数据长�
 #include "libmedia_transfer_protocol/libhttp/http_parser.h"
 #include <algorithm>
 
-#include "rtc_base/logging.h"
+//#include "rtc_base/logging.h"
 
+#include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
 namespace  libmedia_transfer_protocol {
 	namespace libhttp
 	{

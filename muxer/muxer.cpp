@@ -18,8 +18,12 @@
  ******************************************************************************/
 #include "libmedia_transfer_protocol/muxer/muxer.h"
 #include "libmedia_codec/audio_codec/adts_header.h"
-#include  "rtc_base/logging.h"
+ 
 #include "rtc_base/thread_annotations.h"
+#include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
+
+
+
 namespace libmedia_transfer_protocol
 {
 	namespace
@@ -113,7 +117,7 @@ namespace libmedia_transfer_protocol
 			int ret = libmedia_codec::getAdtsFrame((const uint8_t *)frame.data(), frame.size(), &aac_adts_header_info);
 			if (ret != 0)
 			{
-				LIBMEIDA_CODEC_LOG_T_F(LS_WARNING)<<"get adts frame : " << ret;
+				LIBMUXER_LOG_T_F(LS_WARNING)<<"get adts frame : " << ret;
 			}
 			RTC_ASSERT(frame.size() == aac_adts_header_info.aac_frame_length, " aac adts data size : %u != aac length: %u !", frame.size(), aac_adts_header_info.aac_frame_length);
 			aac_decoder_ = std::make_shared<libmedia_codec::AacDecoder>();
@@ -141,7 +145,7 @@ namespace libmedia_transfer_protocol
 		int ret = libmedia_codec::getAdtsFrame((const uint8_t *)frame.data(), frame.size(), &aac_adts_header_info);
 		if (ret != 0)
 		{
-			LIBMEIDA_CODEC_LOG_T_F(LS_WARNING) << "get adts frame : " << ret;
+			LIBMUXER_LOG_T_F(LS_WARNING) << "get adts frame : " << ret;
 		}
 		RTC_ASSERT(frame.size() == aac_adts_header_info.aac_frame_length, " aac adts data size : %u != aac length: %u !", frame.size(), aac_adts_header_info.aac_frame_length);
 

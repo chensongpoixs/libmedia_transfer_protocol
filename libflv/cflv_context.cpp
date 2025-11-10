@@ -41,65 +41,13 @@ purpose:		http_parser
 #include "common_video/h264/h264_common.h"
 #include "modules/video_coding/include/video_coding.h"
 #include "modules/video_coding/codecs/h264/include/h264_globals.h"
+#include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
 namespace libmedia_transfer_protocol
 {
 	namespace libflv
 	{
 		namespace {
-			static uint8_t flv_audio_only_header[] = {
-					0X46, /*'F'*/
-					0X4C, /*'L*/
-					0X56, /*'V'*/
-					0X01, /* version = 1*/
-					0X04,
-					0X00,
-					0X00,
-					0X00,
-					0X09, /*header seize*/
-					0X00,
-				0X00,
-				0X00,
-				0X00
-			};
-
-			//	视频flv头
-
-
-			static uint8_t flv_video_only_header[] = {
-				0X46, /*'F'*/
-				0X4C, /*'L*/
-				0X56, /*'V'*/
-				0X01, /* version = 1*/
-				0X01,
-				0X00,
-				0X00,
-				0X00,
-				0X09, /*header seize*/
-				0X00,
-				0X00,
-				0X00,
-				0X00
-			};
-
-
-			//音视频flv头
-
-			static  uint8_t flv_header[] = {
-				0X46, /*'F'*/
-				0X4C, /*'L*/
-				0X56, /*'V'*/
-				0X01, /* version = 1*/
-				0X05, /*  0000 0101 = has audio & video */
-				0X00,
-				0X00,
-				0X00,
-				0X09, /*header seize*/
-				//0X00,
-				//0X00,
-				//0X00,
-				//0x00
-			};
-
+			 
 			static void set_be24(void *p, uint32_t val)
 			{
 				uint8_t *data = (uint8_t *)p;

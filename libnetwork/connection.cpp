@@ -24,6 +24,8 @@
 #include "libp2p_peerconnection/connection_context.h"
 #include <atomic>
 #include "libmedia_transfer_protocol/libnetwork/connection.h"
+#include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
+
 
 namespace  libmedia_transfer_protocol {
 	namespace libnetwork

@@ -25,6 +25,10 @@
 
 #include "absl/types/optional.h"
 #include "rtc_base/system/rtc_export.h"
+#include <ostream>
+#include <strstream>
+#include <sstream>
+
 
 namespace libmedia_transfer_protocol {
 
@@ -38,6 +42,26 @@ namespace libmedia_transfer_protocol {
 		static bool  EndsWith(const std::string &s, const std::string& sub);
 
 	};
+	
+#define StrPrinter ::libmedia_transfer_protocol::_StrPrinter()
+class _StrPrinter : public std::string {
+public:
+    _StrPrinter() {}
+
+    template<typename T>
+    _StrPrinter& operator <<(T && data) {
+        _stream << std::forward<T>(data);
+        this->std::string::operator=(_stream.str());
+        return *this;
+    }
+
+    std::string operator <<(std::ostream&(*f)(std::ostream&)) const {
+        return *this;
+    }
+
+private:
+    std::stringstream _stream;
+};
 }
 
 #endif // _C_STRING_UTILS_H_

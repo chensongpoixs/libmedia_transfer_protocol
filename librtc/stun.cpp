@@ -22,9 +22,13 @@
 
 #include "libmedia_transfer_protocol/librtc/stun.h"
 #include "libmedia_transfer_protocol/rtp_rtcp/byte_io.h"
-#include "rtc_base/logging.h"
+//#include "rtc_base/logging.h"
 #include "rtc_base/buffer.h"
 #include "rtc_base/crc32.h"
+
+#include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
+
+
 namespace libmedia_transfer_protocol {
 	namespace librtc {
 
