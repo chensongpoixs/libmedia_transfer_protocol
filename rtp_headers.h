@@ -34,7 +34,7 @@
 #include "libmedia_codec/video_content_type.h"
 #include "libmedia_codec/video_rotation.h"
 #include "libmedia_codec/video_timing.h"
-
+#include <sstream>
 namespace libmedia_transfer_protocol {
 
 struct FeedbackRequest {
@@ -46,6 +46,14 @@ struct FeedbackRequest {
   // sequence_count + 1, sequence_number]. That is, no feedback will be sent if
   // sequence_count is zero.
   int sequence_count;
+
+  std::string ToString()
+  {
+      std::stringstream cmd;
+
+      cmd << "FeedbackRequest[include_timestamps:" << include_timestamps << ", sequence_count: " << sequence_count << "]\n";
+      return cmd.str();
+  }
 };
 
 // The Absolute Capture Time extension is used to stamp RTP packets with a NTP
@@ -122,6 +130,41 @@ struct RTPHeaderExtension {
         static_cast<int32_t>((absoluteSendTime - previous_sendtime) << 8) >> 8;
     return webrtc::TimeDelta::Micros((delta * 1000000ll) / (1 << kAbsSendTimeFraction));
   }
+  std::string ToString()
+  {
+      std::stringstream cmd;
+     
+      cmd << "RTPHeaderExtension:\n";
+
+     // cmd << "hasTransmissionTimeOffset:" << hasTransmissionTimeOffset << ", ";
+     // cmd << "transmissionTimeOffset:" << transmissionTimeOffset << "\n";
+      
+      cmd << "hasAbsoluteSendTime: " << hasAbsoluteSendTime << ", ";
+      cmd << "absoluteSendTime:" << absoluteSendTime << "\n ";
+      cmd << "hasTransportSequenceNumber: " << hasTransportSequenceNumber << ", ";
+      if (hasTransportSequenceNumber)
+      {
+          cmd << feedback_request->ToString() ;
+          cmd << "transportSequenceNumber:" << transportSequenceNumber << "\n";
+
+      }
+      //cmd << "hasAudioLevel: " << hasAudioLevel << ", voiceActivity: " << voiceActivity;
+      //cmd << ", audioLevel: " << audioLevel;
+      //cmd << "\n hasVideoRotation: " << hasVideoRotation << ", VideoRotation: " << videoRotation << "\n";
+      //
+      //cmd << "[hasVideoContentType: " << hasVideoContentType << ", videoContentType: " << (int)videoContentType << "\n";
+      //
+      //cmd << "[has_video_timing:" << has_video_timing << "\n ";
+      //
+      //cmd << "[stream_id:" << stream_id << "\n";
+      //
+      //cmd << "[repaired_stream_id: " << repaired_stream_id << "\n";
+      //cmd << "[mid: " << mid << "\n";
+
+      return cmd.str();
+  }
+
+
 
   bool hasTransmissionTimeOffset;
   int32_t transmissionTimeOffset;
@@ -184,6 +227,24 @@ struct RTPHeader {
   size_t headerLength;
   int payload_type_frequency;
   RTPHeaderExtension extension;
+
+
+  std::string ToString()
+  {
+      std::stringstream cmd;
+
+      cmd << "============ RTPHeader: [markerBit:" << markerBit << "][payloadType:" << (int)payloadType << "]\n";
+      cmd << "[seq:" << sequenceNumber << ", timestamp: " << timestamp << "\n";
+      cmd << "[ssrc:" << ssrc << ", numCSRCS: " << numCSRCs << "\n";
+      for (int32_t i = 0; i < numCSRCs; ++i)
+      {
+          cmd << ", arrOfCSRCs["<<i<<"]:" << arrOfCSRCs[i];
+      }
+      cmd << "[paddingLength: " << paddingLength;
+      cmd << "[payload_type_frequency:" << payload_type_frequency << "\n";// "
+      cmd << "extension: " << extension.ToString() << "\n";
+      return cmd.str();
+  }
 };
 
 // RTCP mode to use. Compound mode is described by RFC 4585 and reduced-size

@@ -68,11 +68,11 @@ enum RTPExtensionType : int {
   kRtpExtensionAudioLevel,
   kRtpExtensionCsrcAudioLevel,
   kRtpExtensionInbandComfortNoise,
-  kRtpExtensionAbsoluteSendTime,
-  kRtpExtensionAbsoluteCaptureTime,
+  kRtpExtensionAbsoluteSendTime = kRtpExtensionAudioLevel,
+  kRtpExtensionAbsoluteCaptureTime = kRtpExtensionInbandComfortNoise+2,
   kRtpExtensionVideoRotation,
-  kRtpExtensionTransportSequenceNumber,    // transport-cc 接受端 根据 rtp包头 transport_sequence_number 
-  kRtpExtensionTransportSequenceNumber02,
+  kRtpExtensionTransportSequenceNumber = kRtpExtensionCsrcAudioLevel,    // transport-cc 接受端 根据 rtp包头 transport_sequence_number 
+  kRtpExtensionTransportSequenceNumber02 = kRtpExtensionVideoRotation+2,
   kRtpExtensionPlayoutDelay,
   kRtpExtensionVideoContentType,
   kRtpExtensionVideoLayersAllocation,

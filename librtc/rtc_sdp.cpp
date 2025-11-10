@@ -81,7 +81,27 @@ namespace libmedia_transfer_protocol {
 			static const std::string   ssrc_group	= "a=ssrc-group:";
 			static const std::string   fmtp = "a=fmtp:";
 		}
-
+		/*
+		
+		audio : 
+		
+			a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level
+			a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+			a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
+			a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid
+		video:
+			a=extmap:14 urn:ietf:params:rtp-hdrext:toffset
+			a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+			a=extmap:13 urn:3gpp:video-orientation
+			a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
+			a=extmap:5 http://www.webrtc.org/experiments/rtp-hdrext/playout-delay
+			a=extmap:6 http://www.webrtc.org/experiments/rtp-hdrext/video-content-type
+			a=extmap:7 http://www.webrtc.org/experiments/rtp-hdrext/video-timing
+			a=extmap:8 http://www.webrtc.org/experiments/rtp-hdrext/color-space
+			a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid
+			a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id
+			a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id
+		*/
 		RtcSdp::RtcSdp()
 		: rtc_sdp_type_(kRtcSdpPlay){}
 		RtcSdp::  ~RtcSdp() {}
@@ -392,6 +412,19 @@ namespace libmedia_transfer_protocol {
 				ss << "a=fmtp:" << audio_payload_type_ << " minptime=10;stereo=1;useinbandfec=1\n";
 				ss << "a=rtcp-fb:" << audio_payload_type_ << " transport-cc\n";
 				ss << "a=rtcp-fb:" << audio_payload_type_ << " nack\n";
+
+				// twcc 
+				/*
+				* audio : 
+					a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level
+					a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+					a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
+					a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid
+				*/
+				//ss << "a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\n";
+				ss << "a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\n";
+				ss << "a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\n";
+
 				if (rtc_sdp_type_ == kRtcSdpPlay)
 				{
 
@@ -462,7 +495,24 @@ namespace libmedia_transfer_protocol {
 				ss << "a=rtcp-fb:" << video_payload_type_ << " nack\n";
 				ss << "a=rtcp-fb:" << video_payload_type_ << " nack pli\n";
 				ss << "a=rtcp-fb:" << video_payload_type_ << " transport-cc\n";
+				/*
+				  video : 
+					a=extmap:14 urn:ietf:params:rtp-hdrext:toffset
+					a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+					a=extmap:13 urn:3gpp:video-orientation
+					a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
+					a=extmap:5 http://www.webrtc.org/experiments/rtp-hdrext/playout-delay
+					a=extmap:6 http://www.webrtc.org/experiments/rtp-hdrext/video-content-type
+					a=extmap:7 http://www.webrtc.org/experiments/rtp-hdrext/video-timing
+					a=extmap:8 http://www.webrtc.org/experiments/rtp-hdrext/color-space
+					a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid
+					a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id
+					a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id
+				
+				*/
 
+				ss << "a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\n";
+				ss << "a=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\n";
 #else 
 				ss << "a=rtpmap:96 VP8/90000\n";
 				ss <<"a=rtcp-fb:96 goog-remb\n";

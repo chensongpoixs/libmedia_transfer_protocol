@@ -58,33 +58,14 @@ void RtpPacketReceived::GetHeader(RTPHeader* header) const {
   header->paddingLength = padding_size();
   header->headerLength = headers_size();
   header->payload_type_frequency = payload_type_frequency();
-  header->extension.hasTransmissionTimeOffset =
-      GetExtension<TransmissionOffset>(
-          &header->extension.transmissionTimeOffset);
+
   header->extension.hasAbsoluteSendTime =
       GetExtension<AbsoluteSendTime>(&header->extension.absoluteSendTime);
-  header->extension.absolute_capture_time =
-      GetExtension<AbsoluteCaptureTimeExtension>();
+ 
   header->extension.hasTransportSequenceNumber =
-      GetExtension<TransportSequenceNumberV2>(
-          &header->extension.transportSequenceNumber,
-          &header->extension.feedback_request) ||
       GetExtension<TransportSequenceNumber>(
           &header->extension.transportSequenceNumber);
-  header->extension.hasAudioLevel = GetExtension<AudioLevel>(
-      &header->extension.voiceActivity, &header->extension.audioLevel);
-  header->extension.hasVideoRotation =
-      GetExtension<VideoOrientation>(&header->extension.videoRotation);
-  header->extension.hasVideoContentType =
-      GetExtension<VideoContentTypeExtension>(
-          &header->extension.videoContentType);
-  header->extension.has_video_timing =
-      GetExtension<VideoTimingExtension>(&header->extension.video_timing);
-  GetExtension<RtpStreamId>(&header->extension.stream_id);
-  GetExtension<RepairedRtpStreamId>(&header->extension.repaired_stream_id);
-  GetExtension<RtpMid>(&header->extension.mid);
-  GetExtension<PlayoutDelayLimits>(&header->extension.playout_delay);
-  header->extension.color_space = GetExtension<ColorSpaceExtension>();
+  
 }
 
 }  // namespace webrtc

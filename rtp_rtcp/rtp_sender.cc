@@ -114,8 +114,8 @@ bool IsNonVolatile(RTPExtensionType type) {
     case kRtpExtensionTransmissionTimeOffset:
     case kRtpExtensionAudioLevel:
     case kRtpExtensionCsrcAudioLevel:
-    case kRtpExtensionAbsoluteSendTime:
-    case kRtpExtensionTransportSequenceNumber:
+   // case kRtpExtensionAbsoluteSendTime:
+   // case kRtpExtensionTransportSequenceNumber:
     case kRtpExtensionTransportSequenceNumber02:
     case kRtpExtensionRtpStreamId:
     case kRtpExtensionMid:

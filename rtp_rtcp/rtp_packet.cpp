@@ -29,6 +29,8 @@
 #include "rtc_base/logging.h"
 #include "rtc_base/numerics/safe_conversions.h"
 #include "rtc_base/strings/string_builder.h"
+#include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
+
 
 namespace libmedia_transfer_protocol {
 namespace {
@@ -208,8 +210,8 @@ void RtpPacket::ZeroMutableExtensions() {
         memset(WriteAt(extension.offset), 0, extension.length);
         break;
       }
-      case RTPExtensionType::kRtpExtensionAudioLevel:
-      case RTPExtensionType::kRtpExtensionCsrcAudioLevel:
+      //case RTPExtensionType::kRtpExtensionAudioLevel:
+      //case RTPExtensionType::kRtpExtensionCsrcAudioLevel:
       case RTPExtensionType::kRtpExtensionAbsoluteCaptureTime:
       case RTPExtensionType::kRtpExtensionColorSpace:
       case RTPExtensionType::kRtpExtensionGenericFrameDescriptor00:
@@ -606,6 +608,17 @@ bool RtpPacket::ParseBuffer(const uint8_t* buffer, size_t size) {
     return false;
   }
   payload_size_ = size - payload_offset_ - padding_size_;
+
+
+  std::stringstream cmd;
+  cmd << " extension_entries_: \n";
+  for (auto& ex : extension_entries_)
+  {
+      //LIBRTC_LOG(LS_INFO) << ""
+      cmd << ", ex:" << (int32_t )ex.id;
+  }
+  LIBRTC_LOG(LS_INFO) << cmd.str();
+
   return true;
 }
 
