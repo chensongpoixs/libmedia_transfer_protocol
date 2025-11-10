@@ -234,7 +234,7 @@ public:
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     // |T| S |       Run Length        |
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-#if __BYTE_ORDER == __BIG_ENDIAN
+#if 1
     uint16_t type : 1;
     uint16_t symbol : 2;
     uint16_t run_length_high : 5;
@@ -293,7 +293,7 @@ public:
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     // |T|S|       symbol list         |
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-#if __BYTE_ORDER == __BIG_ENDIAN
+#if 1
     uint16_t type : 1;
     uint16_t symbol : 1;
     uint16_t symbol_list_high : 6;

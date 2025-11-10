@@ -139,14 +139,16 @@ struct RTPHeaderExtension {
      // cmd << "hasTransmissionTimeOffset:" << hasTransmissionTimeOffset << ", ";
      // cmd << "transmissionTimeOffset:" << transmissionTimeOffset << "\n";
       
-      cmd << "hasAbsoluteSendTime: " << hasAbsoluteSendTime << ", ";
+      cmd << "hasAbsoluteSendTime: " << (int32_t)hasAbsoluteSendTime << ", ";
       cmd << "absoluteSendTime:" << absoluteSendTime << "\n ";
-      cmd << "hasTransportSequenceNumber: " << hasTransportSequenceNumber << ", ";
+      cmd << "hasTransportSequenceNumber: " << (int32_t)hasTransportSequenceNumber << ", ";
       if (hasTransportSequenceNumber)
       {
-          cmd << feedback_request->ToString() ;
           cmd << "transportSequenceNumber:" << transportSequenceNumber << "\n";
-
+          if (feedback_request) 
+          {
+              cmd << feedback_request->ToString();
+          }
       }
       //cmd << "hasAudioLevel: " << hasAudioLevel << ", voiceActivity: " << voiceActivity;
       //cmd << ", audioLevel: " << audioLevel;

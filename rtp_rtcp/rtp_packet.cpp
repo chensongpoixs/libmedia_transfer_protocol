@@ -609,7 +609,7 @@ bool RtpPacket::ParseBuffer(const uint8_t* buffer, size_t size) {
   }
   payload_size_ = size - payload_offset_ - padding_size_;
 
-
+#if 0
   std::stringstream cmd;
   cmd << " extension_entries_: \n";
   for (auto& ex : extension_entries_)
@@ -618,7 +618,7 @@ bool RtpPacket::ParseBuffer(const uint8_t* buffer, size_t size) {
       cmd << ", ex:" << (int32_t )ex.id;
   }
   LIBRTC_LOG(LS_INFO) << cmd.str();
-
+#endif // 
   return true;
 }
 

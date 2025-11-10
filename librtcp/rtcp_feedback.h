@@ -27,6 +27,9 @@
 #include <string>
 #include <cstring>
 #include <vector>
+#include "rtc_base/checks.h"
+
+
 namespace libmedia_transfer_protocol {
     namespace librtcp { 
 #pragma pack(push, 1)
@@ -89,7 +92,7 @@ public:
     //      message to a multiple of 32 bits.
     uint8_t pb;
 
-#if __BYTE_ORDER == __BIG_ENDIAN
+#if 1
     //0:  1 bit
     //      MUST be set to zero upon transmission and ignored upon reception.
     uint8_t zero : 1;
@@ -158,7 +161,7 @@ public:
     static size_t constexpr kSize = 8;
 
     void check(size_t size) {
-        CHECK(size == kSize);
+        RTC_CHECK(size == kSize);
     }
 
 private:
@@ -194,7 +197,7 @@ public:
     static size_t constexpr kSize = 12;
 
     void check(size_t size) {
-        CHECK(size == kSize);
+        RTC_CHECK(size == kSize);
     }
 
 private:
@@ -299,7 +302,7 @@ public:
     static size_t constexpr kSize = 8;
 
     void check(size_t size) {
-        CHECK(size == kSize);
+        RTC_CHECK(size == kSize);
     }
 
 private:
