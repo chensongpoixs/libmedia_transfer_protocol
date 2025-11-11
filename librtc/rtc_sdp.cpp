@@ -339,6 +339,10 @@ namespace libmedia_transfer_protocol {
 		{
 			video_ssrc_ = ssrc;
 		}
+		void RtcSdp::SetVideoRtxSsrc(uint32_t ssrc)
+		{
+			video_rtx_ssrc_ = ssrc;
+		}
 		void RtcSdp::SetAudioSsrc(int32_t ssrc)
 		{
 			audio_ssrc_ = ssrc;
@@ -736,8 +740,9 @@ namespace libmedia_transfer_protocol {
 				{
 					ss << "a=ssrc:" << video_ssrc_ << " cname:" << stream_name_ << "\n";
 					ss << "a=ssrc:" << video_ssrc_ << " msid:" << stream_name_ << " " << stream_name_ << "_video\n";
-					ss << "a=ssrc:" << video_ssrc_ << " mslabel:" << stream_name_ << "\n";
-					ss << "a=ssrc:" << video_ssrc_ << " label:" << stream_name_ << "_video\n";
+					ss << "a=ssrc:" << video_rtx_ssrc_ << " cname:" << stream_name_ << "\n";
+					ss << "a=ssrc:" << video_rtx_ssrc_ << " msid:" << stream_name_ << " " << stream_name_ << "_video\n";
+
 				}
 			}
 

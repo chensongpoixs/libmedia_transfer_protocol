@@ -67,6 +67,7 @@ namespace libmedia_transfer_protocol {
 			void SetServerPort(uint16_t port);
 			void SetServerAddr(const std::string &addr);
 			void SetVideoSsrc(uint32_t ssrc);
+			void SetVideoRtxSsrc(uint32_t ssrc);
 			void SetAudioSsrc(int32_t ssrc);
 			const std::string &GetLocalPasswd()const;
 			const std::string &GetLocalUFrag()const;
