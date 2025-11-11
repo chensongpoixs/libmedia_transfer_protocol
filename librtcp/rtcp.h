@@ -171,7 +171,7 @@ namespace libmedia_transfer_protocol {
 
         class RtcpHeader {
         public:
-#if 1
+#if __linux__
             // 版本号，固定为2
             uint32_t version : 2;
             // padding，固定为0
@@ -861,7 +861,7 @@ namespace libmedia_transfer_protocol {
         class RtcpXRTargetBitrateItem {
         public:
             friend class RtcpXRTargetBitrate;
-#if __BYTE_ORDER == __BIG_ENDIAN
+#if __linux__
             // Indicates which temporal layer this bitrate concerns.
             uint32_t spatial_layer : 4;
             // Indicates which temporal layer this bitrate concerns.

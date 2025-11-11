@@ -234,7 +234,7 @@ public:
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     // |T| S |       Run Length        |
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-#if 1
+#if __linux__
     uint16_t type : 1;
     uint16_t symbol : 2;
     uint16_t run_length_high : 5;
@@ -293,7 +293,7 @@ public:
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     // |T|S|       symbol list         |
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-#if 1
+#if __linux__
     uint16_t type : 1;
     uint16_t symbol : 1;
     uint16_t symbol_list_high : 6;

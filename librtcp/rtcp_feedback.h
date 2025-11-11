@@ -92,7 +92,7 @@ public:
     //      message to a multiple of 32 bits.
     uint8_t pb;
 
-#if 1
+#if __linux__
     //0:  1 bit
     //      MUST be set to zero upon transmission and ignored upon reception.
     uint8_t zero : 1;
