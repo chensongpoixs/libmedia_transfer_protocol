@@ -26,7 +26,7 @@
 #include <unordered_map>
 #include "libmedia_transfer_protocol/librtc/sctp_association.h"
 
-
+#if 0
 namespace libmedia_transfer_protocol {
 
 	namespace librtc
@@ -55,5 +55,5 @@ namespace libmedia_transfer_protocol {
 		};
 	}
 }
-
+#endif 
 #endif // _C_LIBRTC_RTC_USR_SCTP__H_

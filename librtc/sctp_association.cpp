@@ -22,7 +22,7 @@
 #include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
 
 
-
+#if 0
 namespace libmedia_transfer_protocol {
 
 	namespace librtc
@@ -947,3 +947,6 @@ namespace libmedia_transfer_protocol {
 		}
 	}
 }
+
+
+#endif // 

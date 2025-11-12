@@ -24,6 +24,11 @@
 #include "rtc_base/logging.h"
  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  
+
+
+
+
+
  // librtc mobule
 #define  LIBRTC_LOG(sev)  RTC_LOG(sev)  << "[librtc]"
 #define  LIBRTC_LOG_F(sev)  RTC_LOG_F(sev) << "[librtc]"
@@ -67,6 +72,28 @@
 #define  LIBMUXER_LOG_F(sev) RTC_LOG_F(sev)<< "[libmuxer]"
 #define  LIBMUXER_LOG_T_F(sev)  RTC_LOG_T_F(sev)<< "[libmuxer]"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+namespace libmedia_transfer_protocol
+{
+	static void printLog(rtc::LoggingSeverity level, const char* file, const char* function, int line, const char* fmt, ...);
+	static void printLogV(rtc::LoggingSeverity level, const char* file, const char* function, int line, const char* fmt, va_list ap);
+
+}
+
+//ÓÃ·¨: PrintD("%d + %s = %c", 1 "2", 'c');  [AUTO-TRANSLATED:1217cc82]
+//Usage: PrintD("%d + %s = %c", 1, "2", 'c');
+#define PrintLog(level, ...) ::libmedia_transfer_protocol::printLog(  level, __FILE__, FUNCTION, __LINE__, ##__VA_ARGS__)
+
+
+#define PrintT(...) PrintLog(rtc::LS_VERBOSE, ##__VA_ARGS__)
+#define PrintD(...) PrintLog(rtc::LS_INFO, ##__VA_ARGS__)
+#define PrintI(...) PrintLog(rtc::LS_INFO, ##__VA_ARGS__)
+#define PrintW(...) PrintLog(rtc::LS_WARNING, ##__VA_ARGS__)
+#define PrintE(...) PrintLog(rtc::LS_ERROR, ##__VA_ARGS__)
 
  
 #endif // _LIBMEDIA_TRANSFER_PROTOCOL_LOG_H_

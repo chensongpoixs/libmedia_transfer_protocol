@@ -24,6 +24,9 @@
 #include <cstdint>
 #include "usrsctp.h"
 #include <unordered_map>
+
+
+#if 0
 namespace libmedia_transfer_protocol {
 
 	namespace librtc
@@ -120,5 +123,9 @@ namespace libmedia_transfer_protocol {
 		};
 	}
 }
+
+
+#endif // 
+
 
 #endif //  
