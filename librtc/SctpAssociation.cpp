@@ -27,7 +27,8 @@ namespace librtc
         /* Static. */
         static const  size_t SctpMtu{ 1200 };
         static const  uint16_t MaxSctpStreams{ 65535 };
-
+        // Free send buffer threshold (in bytes) upon which send_cb will be executed.
+        static uint32_t SendBufferThreshold{ 256u };
         /* SCTP events to which we are subscribing. */
         /* clang-format off */
         static const   uint16_t EventTypes[] =
@@ -112,12 +113,34 @@ namespace librtc
             return 0;
         }
 
+
+
+
         // Static method for printing usrsctp debug.
         inline static void sctpDebug(const char* format, ...) {
             va_list ap;
             va_start(ap, format);
              printLogV( rtc::LS_VERBOSE, __FILE__, __FUNCTION__, __LINE__, format, ap);
             va_end(ap);
+        }
+
+
+
+        inline static int onSendSctpData(struct socket* /*sock*/, uint32_t freeBuffer, void* ulpInfo)
+        {
+            auto* sctpAssociation = static_cast<SctpAssociation*>(ulpInfo);
+
+            LIBRTC_LOG_F(LS_INFO);
+            if (sctpAssociation == nullptr)
+            {
+                MS_WARN_TAG(sctp, "no SctpAssociation found");
+                return -1;
+            }
+            
+
+            sctpAssociation->OnUsrSctpSentData(freeBuffer);
+
+            return 1;
         }
     }
 
@@ -135,7 +158,7 @@ namespace librtc
 
     SctpEnv::SctpEnv() {
         LIBRTC_LOG_T_F(LS_INFO);
-        usrsctp_init_nothreads(0, onSendSctpData, sctpDebug);
+        usrsctp_init(0, onSendSctpData, sctpDebug);
         // Disable explicit congestion notifications (ecn).
         usrsctp_sysctl_set_sctp_ecn_enable(0);
 
@@ -167,7 +190,8 @@ namespace librtc
         int ret;
 
         this->socket = usrsctp_socket(
-          AF_CONN, SOCK_STREAM, IPPROTO_SCTP, onRecvSctpData, nullptr, 250u, static_cast<void*>(this));
+          AF_CONN, SOCK_STREAM, IPPROTO_SCTP, onRecvSctpData, onSendSctpData, SendBufferThreshold, 
+            reinterpret_cast<void*>(this));
 
         if (this->socket == nullptr)
             MS_THROW_ERROR("usrsctp_socket() failed: %s", std::strerror(errno));
@@ -249,7 +273,7 @@ namespace librtc
         std::memset(&sconn, 0, sizeof(sconn));
         sconn.sconn_family = AF_CONN;
         sconn.sconn_port   = htons(5000);
-        sconn.sconn_addr   = static_cast<void*>(this);
+        sconn.sconn_addr   = reinterpret_cast<void*>(this);
 #ifdef HAVE_SCONN_LEN
         sconn.sconn_len = sizeof(sconn);
 #endif
@@ -258,6 +282,15 @@ namespace librtc
 
         if (ret < 0)
             MS_THROW_ERROR("usrsctp_bind() failed: %s", std::strerror(errno));
+
+
+        auto bufferSize = static_cast<int>(maxSctpMessageSize);
+
+        if (usrsctp_setsockopt(this->socket, SOL_SOCKET, SO_SNDBUF, &bufferSize, sizeof(int)) < 0)
+        { 
+
+            MS_THROW_ERROR("usrsctp_setsockopt(SO_SNDBUF) failed: %s", std::strerror(errno));
+        }
     }
 
     SctpAssociation::~SctpAssociation()
@@ -268,7 +301,7 @@ namespace librtc
         usrsctp_close(this->socket);
 
         // Deregister ourselves from usrsctp.
-        usrsctp_deregister_address(static_cast<void*>(this));
+        usrsctp_deregister_address(reinterpret_cast<void*>(this));
 
         delete[] this->messageBuffer;
     }
@@ -289,16 +322,27 @@ namespace librtc
             std::memset(&rconn, 0, sizeof(rconn));
             rconn.sconn_family = AF_CONN;
             rconn.sconn_port   = htons(5000);
-            rconn.sconn_addr   = static_cast<void*>(this);
+            rconn.sconn_addr   = reinterpret_cast<void*>(this);
 #ifdef HAVE_SCONN_LEN
             rconn.sconn_len = sizeof(rconn);
 #endif
 
             ret = usrsctp_connect(this->socket, reinterpret_cast<struct sockaddr*>(&rconn), sizeof(rconn));
 
+#if !WIN32
             if (ret < 0 && errno != EINPROGRESS)
+            {
                 MS_THROW_ERROR("usrsctp_connect() failed: %s", std::strerror(errno));
 
+            }
+#else 
+            // EINPROGRESS 与 win上WinSock2.h中的网络宏冲突了
+            if (ret < 0 && errno != 112/*EINPROGRESS*/)
+            {
+                MS_THROW_ERROR("usrsctp_connect() failed: %s", std::strerror(errno));
+
+            }
+#endif // 
             // Disable MTU discovery.
             sctp_paddrparams peerAddrParams; // NOLINT(cppcoreguidelines-pro-type-member-init)
 
@@ -335,6 +379,7 @@ namespace librtc
 #if MS_LOG_DEV_LEVEL == 3
         MS_DUMP_DATA(data, len);
 #endif
+        LIBRTC_LOG_T_F(LS_INFO) << "hex:" << rtc::hex_encode((const char*)data, len);
 
         usrsctp_conninput(static_cast<void*>(this), data, len, 0);
     }
@@ -562,6 +607,11 @@ namespace librtc
 #if MS_LOG_DEV_LEVEL == 3
         MS_DUMP_DATA(data, len);
 #endif
+
+
+        LIBRTC_LOG_T_F(LS_INFO) << "hex:" << rtc::hex_encode((const char *)data, len);
+
+
 
         this->listener->OnSctpAssociationSendData(this, data, len);
     }
@@ -968,6 +1018,11 @@ namespace librtc
                   sctp, "unhandled SCTP event received [type:%" PRIu16 "]", notification->sn_header.sn_type);
             }
         }
+    }
+
+    void SctpAssociation::OnUsrSctpSentData(uint32_t freeBuffer)
+    {
+        LIBRTC_LOG_T_F(LS_INFO);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////

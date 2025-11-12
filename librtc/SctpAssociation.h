@@ -134,6 +134,7 @@ namespace libmedia_transfer_protocol
             virtual void OnUsrSctpReceiveSctpData( uint16_t streamId,  uint16_t ssn, uint32_t ppid, int flags, const uint8_t* data, size_t len);
             virtual void OnUsrSctpReceiveSctpNotification(union sctp_notification* notification, size_t len);
 
+            void OnUsrSctpSentData(uint32_t freeBuffer);
         private:
             // Passed by argument.
             Listener* listener{ nullptr };

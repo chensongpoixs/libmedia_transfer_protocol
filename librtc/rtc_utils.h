@@ -20,15 +20,15 @@
 
 #ifndef _C_LIBRTC_UTILS_H_
 #define _C_LIBRTC_UTILS_H_
-
-#if defined(_WIN32)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma comment (lib, "Ws2_32.lib")
-#else
-#include <arpa/inet.h>
-#endif // defined(_WIN32)
-
+#if 0
+//#if defined(_WIN32)
+//#include <winsock2.h>
+//#include <ws2tcpip.h>
+//#pragma comment (lib, "Ws2_32.lib")
+//#else
+//#include <arpa/inet.h>
+//#endif // defined(_WIN32)
+#endif // 
 #include <cinttypes>// PRIu64, etc
 #include <cstddef>// size_t
 #include <cstdint>// uint8_t, etc
