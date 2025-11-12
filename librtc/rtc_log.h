@@ -27,7 +27,7 @@
 
 
  
-#define MS_TRACE()
+#define MS_TRACE()   LIBRTC_LOG_F(LS_INFO)
 #define MS_ERROR PrintE
 #define MS_THROW_ERROR(...) do { PrintE(__VA_ARGS__); throw std::runtime_error("MS_THROW_ERROR"); } while(false)
 #define MS_DUMP PrintT

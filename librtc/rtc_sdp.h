@@ -43,7 +43,12 @@ namespace libmedia_transfer_protocol {
 			
 		};
 		 
-
+		struct DataChannelParams
+		{
+			bool    application = false;
+			int32_t sctp_port = 5000;
+			int32_t max_mesage_size = 262144;
+		};
 		class RtcSdp
 		{
 		public:
@@ -103,7 +108,7 @@ namespace libmedia_transfer_protocol {
 			RtcSdpType      rtc_sdp_type_{ kRtcSdpPlay };
 			std::string     ssrc_group_{ "FID" }; // video rtx 
 
-
+			DataChannelParams   data_channel_params_;
 		};
 	}
 	

@@ -62,6 +62,7 @@ namespace libmedia_transfer_protocol {
 
 			 
 			void OnRecv(const uint8_t *data, int32_t size);
+			void SendApplicationData(const uint8_t* data, size_t len);
 			bool SetRemoteFingerprint(Fingerprint fingerprint);
 			 
 			

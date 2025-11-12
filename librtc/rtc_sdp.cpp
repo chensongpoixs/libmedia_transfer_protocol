@@ -80,6 +80,9 @@ namespace libmedia_transfer_protocol {
 			static const std::string   ssrc				= "a=ssrc:";
 			static const std::string   ssrc_group	= "a=ssrc-group:";
 			static const std::string   fmtp = "a=fmtp:";
+			static const std::string application_token = "m=application";
+			static const std::string  sctp_port_token = "a=sctp-port:";
+			static const std::string  max_message_size_token = "a=max-mesage-size:";
 		}
 		/*
 		
@@ -101,9 +104,22 @@ namespace libmedia_transfer_protocol {
 			a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid
 			a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id
 			a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id
+
+		datachannel
+			m=application 9 UDP/DTLS/SCTP webrtc-datachannel
+			c=IN IP4 0.0.0.0
+			a=ice-ufrag:QMlp
+			a=ice-pwd:flokPS0swUVGfjizysa3zuL4
+			a=ice-options:trickle
+			a=fingerprint:sha-256 11:3D:8D:D7:E7:86:7E:4B:9D:0C:75:AF:60:CF:7D:88:AB:F2:5D:7E:15:A3:E5:A3:5E:C0:C4:B8:62:1F:44:EC
+			a=setup:actpass
+			a=mid:2
+			a=sctp-port:5000
+			a=max-message-size:262144
 		*/
 		RtcSdp::RtcSdp()
-		: rtc_sdp_type_(kRtcSdpPlay){}
+		: rtc_sdp_type_(kRtcSdpPlay)
+		, data_channel_params_(){}
 		RtcSdp::  ~RtcSdp() {}
 
 		void RtcSdp::SetSdpType(RtcSdpType  rtc_sdp_type)
@@ -271,6 +287,30 @@ namespace libmedia_transfer_protocol {
 						LIBRTC_LOG_T_F(LS_WARNING) << "not  type  ssrc: " << line;
 					}
 				}
+				else if (StringUtils::StartsWith(line, application_token))
+				{
+
+					data_channel_params_.application = true;
+					
+				}
+				else if (StringUtils::StartsWith(line, sctp_port_token))
+				{
+					if (data_channel_params_.application)
+					{
+						std::string port = line.substr(sctp_port_token.size());
+						//auto pos = content.find_first_of(" ");
+						data_channel_params_.sctp_port = std::atoi(port.c_str());
+					}
+				}
+				else if (StringUtils::StartsWith(line, sctp_port_token))
+				{
+					if (data_channel_params_.application)
+					{
+						std::string max_mesage_size = line.substr(sctp_port_token.size());
+				 
+						data_channel_params_.max_mesage_size = std::atoi(max_mesage_size.c_str());
+					}
+				}
 			}
 			return true;
 		}
@@ -372,7 +412,7 @@ namespace libmedia_transfer_protocol {
 			ss << "s=" << stream_name_ << "\n";
 			ss << "c=IN IP4 0.0.0.0\n";
 			ss << "t=0 0\n";
-			ss << "a=group:BUNDLE 0 1\n";
+			ss << "a=group:BUNDLE 0 1 2\n";
 			ss << "a=msid-semantic: WMS " << stream_name_ << "\n";
 
 			std::stringstream finger_prints;
@@ -745,6 +785,26 @@ namespace libmedia_transfer_protocol {
 
 				}
 			}
+
+
+			if (data_channel_params_.application)
+			{
+				ss << "m=application 9 UDP/DTLS/SCTP webrtc-datachannel\n";
+				ss << "c=IN IP4 0.0.0.0\n";
+				//ss << "a=ice-ufrag:QMlp\n";
+				//ss << "a=ice-pwd:flokPS0swUVGfjizysa3zuL4\n";
+				ss << "a=ice-ufrag:" << local_ufrag_ << "\n";
+				ss << "a=ice-pwd:" << local_passwd_ << "\n";
+				ss << "a=ice-options:trickle\n";
+				//ss << "a=fingerprint:sha-256 11:3D:8D:D7:E7:86:7E:4B:9D:0C:75:AF:60:CF:7D:88:AB:F2:5D:7E:15:A3:E5:A3:5E:C0:C4:B8:62:1F:44:EC\n";
+				//ss << "a=setup:actpass\n";
+				ss << finger_prints.str();
+				ss << "a=setup:passive\n";
+				ss << "a=mid:2\n";
+				ss << "a=sctp-port:5000\n";
+				ss << "a=max-message-size:262144\n";
+			}
+
 
 			return ss.str();
 		}

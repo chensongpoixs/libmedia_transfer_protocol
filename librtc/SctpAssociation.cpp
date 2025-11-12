@@ -26,11 +26,11 @@ namespace librtc
     namespace {
         /* Static. */
         static const  size_t SctpMtu{ 1200 };
-        static const  ::uint16_t MaxSctpStreams{ 65535 };
+        static const  uint16_t MaxSctpStreams{ 65535 };
 
         /* SCTP events to which we are subscribing. */
         /* clang-format off */
-        static const  ::uint16_t EventTypes[] =
+        static const   uint16_t EventTypes[] =
         {
             SCTP_ADAPTATION_INDICATION,
             SCTP_ASSOC_CHANGE,
@@ -53,6 +53,7 @@ namespace librtc
             int flags,
             void* ulpInfo)
         {
+            LIBRTC_LOG_F(LS_INFO);
             auto* sctpAssociation = static_cast< SctpAssociation*>(ulpInfo);
 
             if (sctpAssociation == nullptr)
@@ -98,8 +99,11 @@ namespace librtc
         inline static int onSendSctpData(void* addr, void* data, size_t len, uint8_t /*tos*/, uint8_t /*setDf*/) {
             auto* sctpAssociation = static_cast<SctpAssociation*>(addr);
 
+            LIBRTC_LOG_F(LS_INFO);
             if (sctpAssociation == nullptr)
+            {
                 return -1;
+            }
 
             sctpAssociation->OnUsrSctpSendSctpData(data, len);
 
@@ -130,7 +134,8 @@ namespace librtc
     INSTANCE_IMP(SctpEnv)
 
     SctpEnv::SctpEnv() {
-        usrsctp_init(0, onSendSctpData, sctpDebug);
+        LIBRTC_LOG_T_F(LS_INFO);
+        usrsctp_init_nothreads(0, onSendSctpData, sctpDebug);
         // Disable explicit congestion notifications (ecn).
         usrsctp_sysctl_set_sctp_ecn_enable(0);
 
@@ -140,6 +145,7 @@ namespace librtc
     }
 
     SctpEnv::~SctpEnv() {
+        LIBRTC_LOG_T_F(LS_INFO);
         usrsctp_finish();
     }
 
@@ -161,12 +167,12 @@ namespace librtc
         int ret;
 
         this->socket = usrsctp_socket(
-          AF_CONN, SOCK_STREAM, IPPROTO_SCTP, onRecvSctpData, nullptr, 0, static_cast<void*>(this));
+          AF_CONN, SOCK_STREAM, IPPROTO_SCTP, onRecvSctpData, nullptr, 250u, static_cast<void*>(this));
 
         if (this->socket == nullptr)
             MS_THROW_ERROR("usrsctp_socket() failed: %s", std::strerror(errno));
 
-        usrsctp_set_ulpinfo(this->socket, static_cast<void*>(this));
+        ret = usrsctp_set_ulpinfo(this->socket, static_cast<void*>(this));
 
         // Make the socket non-blocking.
         ret = usrsctp_set_non_blocking(this->socket, 1);
@@ -966,7 +972,9 @@ namespace librtc
 
     ////////////////////////////////////////////////////////////////////////////////////////
 
-    void SctpAssociationImp::OnUsrSctpSendSctpData(void* buffer, size_t len) {
+    void SctpAssociationImp::OnUsrSctpSendSctpData(void* buffer, size_t len) 
+    {
+        LIBRTC_LOG_T_F(LS_INFO);
         if (worker_thread_->IsCurrent()) {
             SctpAssociation::OnUsrSctpSendSctpData(buffer, len);
         } else {

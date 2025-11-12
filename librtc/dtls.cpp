@@ -316,6 +316,51 @@ namespace libmedia_transfer_protocol {
 #endif //
 		}
 
+
+		void Dtls::SendApplicationData(const uint8_t* data, size_t len)
+		{
+			LIBRTC_LOG_T_F(LS_INFO);
+			//MS_TRACE();
+
+			// We cannot send data to the peer if its remote fingerprint is not validated.
+			 
+			if (this->state_ != DtlsState::CONNECTED)
+			{
+				LIBSSL_LOG_T_F(LS_WARNING) <<  "cannot send application data while DTLS is not fully connected";
+
+				return;
+			}
+
+			if (len == 0)
+			{
+				LIBSSL_LOG_T_F(LS_WARNING) <<( "ignoring 0 length data");
+
+				return;
+			}
+
+			int written;
+
+			written = SSL_write(this->ssl_, static_cast<const void*>(data), static_cast<int>(len));
+
+			if (written < 0)
+			{
+				LIBSSL_LOG_T_F(LS_ERROR) <<("SSL_write() failed");
+
+				if (!CheckStatus(written))
+				{
+					return;
+				}
+			}
+			else if (written != static_cast<int>(len))
+			{
+				LIBSSL_LOG_T_F(LS_WARNING) << "OpenSSL SSL_write() wrote less ("<< written <<" bytes) than given data ("<<len<<" bytes)";
+				//MS_WARN_TAG(
+				//	dtls, "OpenSSL SSL_write() wrote less (%d bytes) than given data (%zu bytes)", written, len);
+			}
+
+			// Send data.
+			SendPendingOutgoingDtlsData();
+		}
 		bool Dtls::SetRemoteFingerprint(Fingerprint fingerprint)
 		{
 			RTC_ASSERT(

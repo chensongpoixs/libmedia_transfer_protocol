@@ -47,10 +47,10 @@ namespace libmedia_transfer_protocol
         {
         public:
 
-            ::uint16_t streamId{ 0u };
+             uint16_t streamId{ 0u };
             bool ordered{ true };
-            ::uint16_t maxPacketLifeTime{ 0u };
-            ::uint16_t maxRetransmits{ 0u };
+            uint16_t maxPacketLifeTime{ 0u };
+             uint16_t maxRetransmits{ 0u };
         };
 
         class SctpAssociation
@@ -84,7 +84,7 @@ namespace libmedia_transfer_protocol
                      SctpAssociation* sctpAssociation, const uint8_t* data, size_t len) = 0;
                 virtual void OnSctpAssociationMessageReceived(
                      SctpAssociation* sctpAssociation,
-                    ::uint16_t streamId,
+                     uint16_t streamId,
                     uint32_t ppid,
                     const uint8_t* msg,
                     size_t len) = 0;
@@ -104,8 +104,8 @@ namespace libmedia_transfer_protocol
             }
 
         public:
-            SctpAssociation(
-                Listener* listener, ::uint16_t os, ::uint16_t mis, size_t maxSctpMessageSize, bool isDataChannel);
+           explicit SctpAssociation(
+                Listener* listener, uint16_t os,  uint16_t mis, size_t maxSctpMessageSize, bool isDataChannel);
             virtual ~SctpAssociation();
 
         public:
@@ -125,20 +125,20 @@ namespace libmedia_transfer_protocol
             void DataConsumerClosed(const  SctpStreamParameters& params);
 
         private:
-            void ResetSctpStream(::uint16_t streamId, StreamDirection);
+            void ResetSctpStream( uint16_t streamId, StreamDirection);
             void AddOutgoingStreams(bool force = false);
 
         public:
             /* Callbacks fired by usrsctp events. */
             virtual void OnUsrSctpSendSctpData(void* buffer, size_t len);
-            virtual void OnUsrSctpReceiveSctpData(::uint16_t streamId, ::uint16_t ssn, uint32_t ppid, int flags, const uint8_t* data, size_t len);
+            virtual void OnUsrSctpReceiveSctpData( uint16_t streamId,  uint16_t ssn, uint32_t ppid, int flags, const uint8_t* data, size_t len);
             virtual void OnUsrSctpReceiveSctpNotification(union sctp_notification* notification, size_t len);
 
         private:
             // Passed by argument.
             Listener* listener{ nullptr };
-            ::uint16_t os{ 1024u };
-            ::uint16_t mis{ 1024u };
+            uint16_t os{ 1024u };
+            uint16_t mis{ 1024u };
             size_t maxSctpMessageSize{ 262144u };
             bool isDataChannel{ false };
             // Allocated by this.
@@ -146,9 +146,9 @@ namespace libmedia_transfer_protocol
             // Others.
             SctpState state{ SctpState::NEW };
             struct socket* socket{ nullptr };
-            ::uint16_t desiredOs{ 0u };
+            uint16_t desiredOs{ 0u };
             size_t messageBufferLen{ 0u };
-            ::uint16_t lastSsnReceived{ 0u }; // Valid for us since no SCTP I-DATA support.
+            uint16_t lastSsnReceived{ 0u }; // Valid for us since no SCTP I-DATA support.
             std::shared_ptr<SctpEnv> _env;
         };
 
@@ -156,16 +156,24 @@ namespace libmedia_transfer_protocol
         class SctpAssociationImp : public SctpAssociation, public std::enable_shared_from_this<SctpAssociationImp> {
         public:
             using Ptr = std::shared_ptr<SctpAssociationImp>;
-            template<typename ... ARGS>
-            SctpAssociationImp(rtc::Thread*  workder_thread, ARGS &&...args) : SctpAssociation(std::forward<ARGS>(args)...) {
-                worker_thread_ = std::move(workder_thread);
+            //template<typename ... ARGS>
+            //explicit SctpAssociationImp(rtc::Thread*  workder_thread, ARGS &&...args) 
+            //    : SctpAssociation(std::forward<ARGS>(args)...) {
+            //    worker_thread_ = workder_thread;
+            //}
+            explicit SctpAssociationImp(rtc::Thread* workder_thread,
+                Listener* listener, uint16_t os, uint16_t mis, size_t maxSctpMessageSize, bool isDataChannel)
+                : SctpAssociation(listener, os, mis, maxSctpMessageSize, isDataChannel)
+                , worker_thread_(workder_thread)
+            {
+
             }
 
             ~SctpAssociationImp() override = default;
 
         protected:
             void OnUsrSctpSendSctpData(void* buffer, size_t len) override;
-            void OnUsrSctpReceiveSctpData(::uint16_t streamId, ::uint16_t ssn, uint32_t ppid, int flags, const uint8_t* data, size_t len) override;
+            void OnUsrSctpReceiveSctpData( uint16_t streamId,  uint16_t ssn, uint32_t ppid, int flags, const uint8_t* data, size_t len) override;
             void OnUsrSctpReceiveSctpNotification(union sctp_notification* notification, size_t len) override;
 
         private:
