@@ -79,8 +79,8 @@
 
 namespace libmedia_transfer_protocol
 {
-	static void printLog(rtc::LoggingSeverity level, const char* file, const char* function, int line, const char* fmt, ...);
-	static void printLogV(rtc::LoggingSeverity level, const char* file, const char* function, int line, const char* fmt, va_list ap);
+	  void printLog(rtc::LoggingSeverity level, const char* file, const char* function, int line, const char* fmt, ...);
+	  void printLogV(rtc::LoggingSeverity level, const char* file, const char* function, int line, const char* fmt, va_list ap);
 
 }
 
