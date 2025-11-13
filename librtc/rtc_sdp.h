@@ -47,7 +47,7 @@ namespace libmedia_transfer_protocol {
 		{
 			bool    application = false;
 			int32_t sctp_port = 5000;
-			int32_t max_mesage_size = 262144;
+			int32_t max_message_size = 262144;
 		};
 		class RtcSdp
 		{
@@ -74,10 +74,13 @@ namespace libmedia_transfer_protocol {
 			void SetVideoSsrc(uint32_t ssrc);
 			void SetVideoRtxSsrc(uint32_t ssrc);
 			void SetAudioSsrc(int32_t ssrc);
+			void SetDataChannelParams(const DataChannelParams& params);
 			const std::string &GetLocalPasswd()const;
 			const std::string &GetLocalUFrag()const;
 			uint32_t VideoSsrc() const;
 			uint32_t AudioSsrc() const;
+			const DataChannelParams& GetDataChannelParams() const;
+			
 			std::string Encode();
 		private:
 			int32_t audio_payload_type_{ -1 };

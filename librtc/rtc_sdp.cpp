@@ -291,7 +291,7 @@ namespace libmedia_transfer_protocol {
 				{
 
 					data_channel_params_.application = true;
-					
+					LIBRTC_LOG(LS_INFO) << "open  data channel  OK !!! ";
 				}
 				else if (StringUtils::StartsWith(line, sctp_port_token))
 				{
@@ -300,6 +300,8 @@ namespace libmedia_transfer_protocol {
 						std::string port = line.substr(sctp_port_token.size());
 						//auto pos = content.find_first_of(" ");
 						data_channel_params_.sctp_port = std::atoi(port.c_str());
+						LIBRTC_LOG(LS_INFO) << " data channel sctp port: " << data_channel_params_.sctp_port;
+
 					}
 				}
 				else if (StringUtils::StartsWith(line, sctp_port_token))
@@ -308,7 +310,8 @@ namespace libmedia_transfer_protocol {
 					{
 						std::string max_mesage_size = line.substr(sctp_port_token.size());
 				 
-						data_channel_params_.max_mesage_size = std::atoi(max_mesage_size.c_str());
+						data_channel_params_.max_message_size = std::atoi(max_mesage_size.c_str());
+						LIBRTC_LOG(LS_INFO) << " data channel max message size: " << data_channel_params_.max_message_size;
 					}
 				}
 			}
@@ -403,16 +406,41 @@ namespace libmedia_transfer_protocol {
 		{
 			return audio_ssrc_;
 		}
+		void RtcSdp::SetDataChannelParams(const DataChannelParams& params)
+		{
+			data_channel_params_ = params;
+		}
+		const DataChannelParams& RtcSdp::GetDataChannelParams() const
+		{
+			return data_channel_params_;
+		}
 		std::string RtcSdp::Encode()
 		{
 			std::ostringstream ss;
-
+			int32_t mid = 0;
 			ss << "v=0\n";
 			ss << "o=rtc 11111111111360111 2 IN IP4 0.0.0.0\n";
 			ss << "s=" << stream_name_ << "\n";
 			ss << "c=IN IP4 0.0.0.0\n";
 			ss << "t=0 0\n";
-			ss << "a=group:BUNDLE 0 1 2\n";
+
+
+
+
+			ss << "a=group:BUNDLE";
+			if (0 != audio_payload_type_)
+			{
+				ss << " " << mid++ ;
+			}
+			if (0 != video_payload_type_)
+			{
+				ss << " " << mid++  ;
+			}
+			if (data_channel_params_.application)
+			{
+				ss << " " << mid++;
+			}
+			ss << "\n";
 			ss << "a=msid-semantic: WMS " << stream_name_ << "\n";
 
 			std::stringstream finger_prints;
@@ -488,7 +516,15 @@ namespace libmedia_transfer_protocol {
 
 #endif //
 				ss << "c=IN IP4 0.0.0.0\n";
-				ss << "a=mid:1\n";
+				if (mid > 1)
+				{
+					ss << "a=mid:1\n";
+				}
+				else
+				{
+					ss << "a=mid:0\n";
+				}
+				
 				ss << "a=ice-ufrag:" << local_ufrag_ << "\n";
 				ss << "a=ice-pwd:" << local_passwd_ << "\n";
 				//ss << "a=fingerprint:sha-256 " << fingerprint_ << "\n";
@@ -800,7 +836,8 @@ namespace libmedia_transfer_protocol {
 				//ss << "a=setup:actpass\n";
 				ss << finger_prints.str();
 				ss << "a=setup:passive\n";
-				ss << "a=mid:2\n";
+				 
+				ss << "a=mid:"<< mid <<"\n";
 				ss << "a=sctp-port:5000\n";
 				ss << "a=max-message-size:262144\n";
 			}
