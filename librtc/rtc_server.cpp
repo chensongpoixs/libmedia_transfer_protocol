@@ -128,11 +128,7 @@ namespace libmedia_transfer_protocol {
 			 if (IsStun(data, len))
 			 {
 				 SignalStunPacket(socket, data, len, addr, ms);
-			 }
-			 else if (IsDtls(data, len))
-			 {
-				 SignalDtlsPacket(socket, data, len, addr, ms);
-			 }
+			 } 
 			 else if (IsRtcp(data, len))
 			 {
 				 SignalRtcpPacket(socket, data, len, addr, ms);
@@ -141,10 +137,13 @@ namespace libmedia_transfer_protocol {
 			 {
 				 SignalRtpPacket(socket, data, len, addr, ms);
 			 }
-			 
+			 else if (IsDtls(data, len))
+			 {
+				 SignalDtlsPacket(socket, data, len, addr, ms);
+			 }
 			 else
 			 {
-				 LIBRTC_LOG_T_F(LS_WARNING) << " recv unk type packet addr:" << addr.ToString();
+				 LIBRTC_LOG_T_F(LS_WARNING)<< "ignoring received packet of unknown type" << " recv unk type packet addr:" << addr.ToString();
 			 } 
 		 }
 
@@ -153,11 +152,7 @@ namespace libmedia_transfer_protocol {
 			 if (IsStun(data, len))
 			 {
 				 SignalSyncStunPacket(socket, data, len, addr, ms);
-			 }
-			 else if (IsDtls(data, len))
-			 {
-				 SignalSyncDtlsPacket(socket, data, len, addr, ms);
-			 }
+			 } 
 			 else if (IsRtp(data, len))
 			 {
 				 SignalSyncRtpPacket(socket, data, len, addr, ms);
@@ -165,6 +160,10 @@ namespace libmedia_transfer_protocol {
 			 else if (IsRtcp(data, len))
 			 {
 				 SignalSyncRtcpPacket(socket, data, len, addr, ms);
+			 }
+			 else if (IsDtls(data, len))
+			 {
+				 SignalSyncDtlsPacket(socket, data, len, addr, ms);
 			 }
 			 else
 			 {

@@ -837,7 +837,7 @@ namespace libmedia_transfer_protocol {
 				ss << finger_prints.str();
 				ss << "a=setup:passive\n";
 				 
-				ss << "a=mid:"<< mid <<"\n";
+				ss << "a=mid:"<< (mid-1) <<"\n";
 				ss << "a=sctp-port:5000\n";
 				ss << "a=max-message-size:262144\n";
 			}

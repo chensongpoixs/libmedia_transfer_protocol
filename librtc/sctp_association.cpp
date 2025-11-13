@@ -401,7 +401,7 @@ namespace libmedia_transfer_protocol
 #if MS_LOG_DEV_LEVEL == 3
             MS_DUMP_DATA(data, len);
 #endif
-            LIBRTC_LOG_T_F(LS_INFO) << "hex:" << rtc::hex_encode((const char*)data, len);
+            //LIBRTC_LOG_T_F(LS_INFO) << "hex:" << rtc::hex_encode((const char*)data, len);
 
             usrsctp_conninput(static_cast<void*>(this), data, len, 0);
         }
@@ -486,9 +486,13 @@ namespace libmedia_transfer_protocol
             // Send SCTP_RESET_STREAMS to the remote.
             // https://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-13#section-6.7
             if (this->isDataChannel)
+            {
                 ResetSctpStream(streamId, StreamDirection::OUTGOING);
+            }
             else
+            {
                 ResetSctpStream(streamId, StreamDirection::INCOMING);
+            }
         }
 
         void SctpAssociation::DataConsumerClosed(const  SctpStreamParameters& params)
@@ -617,7 +621,9 @@ namespace libmedia_transfer_protocol
                 this->socket, IPPROTO_SCTP, SCTP_ADD_STREAMS, &sas, static_cast<socklen_t>(sizeof(sas)));
 
             if (ret < 0)
+            {
                 MS_WARN_TAG(sctp, "usrsctp_setsockopt(SCTP_ADD_STREAMS) failed: %s", std::strerror(errno));
+            }
         }
 
         void SctpAssociation::OnUsrSctpSendSctpData(void* buffer, size_t len)
@@ -631,7 +637,7 @@ namespace libmedia_transfer_protocol
 #endif
 
 
-            LIBRTC_LOG_T_F(LS_INFO) << "hex:" << rtc::hex_encode((const char*)data, len);
+            //LIBRTC_LOG_T_F(LS_INFO) << "hex:" << rtc::hex_encode((const char*)data, len);
 
 
 
