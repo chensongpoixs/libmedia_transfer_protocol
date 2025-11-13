@@ -118,6 +118,9 @@ rtp_rtcp/rtp_header_extension_map.cpp
 	librtcp/*.h
 	librtcp/*.cpp 
 	librtcp/*.hpp 
+	librtp/*.h 
+	librtp/*.cpp 
+	librtp/*.hpp 
 ) 
 
 
