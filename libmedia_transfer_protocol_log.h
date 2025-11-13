@@ -63,6 +63,12 @@
 #define  LIBFLV_LOG(sev) RTC_LOG(sev)  << "[libflv]"
 #define  LIBFLV_LOG_F(sev) RTC_LOG_F(sev)<< "[libflv]"
 #define  LIBFLV_LOG_T_F(sev)  RTC_LOG_T_F(sev)<< "[libflv]"
+
+// librtp 
+#define  LIBRTP_LOG(sev) RTC_LOG(sev)  << "[librtp]"
+#define  LIBRTP_LOG_F(sev) RTC_LOG_F(sev)<< "[librtp]"
+#define  LIBRTP_LOG_T_F(sev)  RTC_LOG_T_F(sev)<< "[librtp]"
+
 // librtcp 
 #define  LIBRTCP_LOG(sev) RTC_LOG(sev)  << "[librtcp]"
 #define  LIBRTCP_LOG_F(sev) RTC_LOG_F(sev)<< "[librtcp]"
@@ -71,6 +77,10 @@
 #define  LIBMUXER_LOG(sev) RTC_LOG(sev)  << "[libmuxer]"
 #define  LIBMUXER_LOG_F(sev) RTC_LOG_F(sev)<< "[libmuxer]"
 #define  LIBMUXER_LOG_T_F(sev)  RTC_LOG_T_F(sev)<< "[libmuxer]"
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
