@@ -89,11 +89,11 @@ namespace libmedia_transfer_protocol
 
 
 		//VideoEncoder
-		int32_t   VideoEncoder::EncodeVideo(StreamWriter *writer, bool key, rtc::CopyOnWriteBuffer data, int64_t dts)
+		int32_t   VideoEncoder::EncodeVideo(StreamWriter *writer, bool key, std::shared_ptr<Packet>& data, int64_t dts)
 		{
 			std::list<SampleBuf> list;
 			//int ret;
-			auto ret = demux_.OnDemux((const char *)data.data(), data.size(), list);
+			auto ret = demux_.OnDemux(data->Data(), data->PacketSize (), list);
 			if (ret == -1)
 			{
 				LIBMPEG_LOG_T_F(LS_ERROR) << "video demux  error. ";

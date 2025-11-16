@@ -78,7 +78,10 @@
 #define  LIBMUXER_LOG_F(sev) RTC_LOG_F(sev)<< "[libmuxer]"
 #define  LIBMUXER_LOG_T_F(sev)  RTC_LOG_T_F(sev)<< "[libmuxer]"
 
-
+// libhls
+#define  LIBHLS_LOG(sev) RTC_LOG(sev)  << "[libhls]"
+#define  LIBHLS_LOG_F(sev) RTC_LOG_F(sev)<< "[libhls]"
+#define  LIBHLS_LOG_T_F(sev)  RTC_LOG_T_F(sev)<< "[libhls]"
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

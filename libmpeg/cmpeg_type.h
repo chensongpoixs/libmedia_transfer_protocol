@@ -83,7 +83,34 @@ namespace libmedia_transfer_protocol
 			kFrameTypeVideoInfoFrame = 5,
 		};
 
+		enum SoundRate
+		{
+			kSoundRate5512 = 0,
+			kSoundRate11025 = 1,
+			kSoundRate22050 = 2,
+			kSoundRate44100 = 3,
+			kSoundRate48000 = 4,
+			kSoundRateNB8kHz = 8,  // NB (narrowband)
+			kSoundRateMB12kHz = 12, // MB (medium-band)
+			kSoundRateWB16kHz = 16, // WB (wideband)
+			kSoundRateSWB24kHz = 24, // SWB (super-wideband)
+			kSoundRateFB48kHz = 48, // FB (fullband)
+			kSoundRateForbidden = 0xff,
+		};
 
+		enum SoundSize
+		{
+			kSoundSizeBits8bit = 0,
+			kSoundSizeBits16bit = 1,
+			kSoundSizeBitsForbidden = 2,
+		};
+
+		enum SoundChannel
+		{
+			kSoundChannelMono = 0,
+			kSoundChannelStereo = 1,
+			kSoundChannelForbidden = 2,
+		};
 		enum AudioCodecID
 		{
 			kAudioCodecIDLinearPCMPlatformEndian = 0,
@@ -103,7 +130,11 @@ namespace libmedia_transfer_protocol
 			kAudioCodecIDReservedDeviceSpecificSound = 15,
 		};
 
-
+		enum AACPacketType
+		{
+			kAACPacketTypeAACSequenceHeader = 0,
+			kAACPacketTypeAACRaw = 1,
+		};
 		enum AACObjectType
 		{
 			kAACObjectTypeForbidden = 0,

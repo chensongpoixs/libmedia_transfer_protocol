@@ -1,9 +1,48 @@
 ﻿/***********************************************************************************************
-created: 		2025-05-02
+created: 		2025-04-29
 
 author:			chensong
 
-purpose:		video encoder 
+purpose:		audio_demux
+
+
+
+
+			0     1     2    3    4     5    6    7     8    9   10   11  12
+			+-------------------------------------------------------+
+			|        format       |   rate   |size| type|           |
+			+-------------------------------------------------------+
+					  4bit            2bit    1bit  1bit
+
+
+
+
+ .音频编码格式为 sound_format为2 
+1. 第二个字节开始， 就是MP3的RAW数据
+ 
+ 音频编码格式为 sound_format为10
+
+
+1. 第二个字节为AACPacketType， 值为0， 表示当前包为AAC sequence header， 否则为AAC raw原始数据
+2. 第三个字节开始为AAC原始音频数据
+ 
+
+
+
+ AAC sSequence Header
+
+
+ 1. audioObjectType 4 位
+ 2. samplingFrequencyIndexx  5位
+ 3. channelConfiguration： 4位
+
+
+
+
+
+
+
+
 输赢不重要，答案对你们有什么意义才重要。
 
 光阴者，百代之过客也，唯有奋力奔跑，方能生风起时，是时代造英雄，英雄存在于时代。或许世人道你轻狂，可你本就年少啊。 看护好，自己的理想和激情。
@@ -21,63 +60,83 @@ purpose:		video encoder
 安静，淡然，代码就是我的一切，写代码就是我本心回归的最好方式，我还没找到本心猎手，但我相信，顺着这个线索，我一定能顺藤摸瓜，把他揪出来。
 ************************************************************************************************/
 
-#ifndef _C_VIDEO_ENCODER_
-#define _C_VIDEO_ENCODER_
+#ifndef _C_AUDIO_DEMUX_
+#define _C_AUDIO_DEMUX_
 
 
 #include <cstdint>
-#include <memory>
-
-#include "cstream_writer.h"
+#include <memory> 
 #include <string>
 #include <unordered_map>
 #include <memory>
-#include <sstream>
-#include <unordered_map>
+#include <sstream> 
+ 
+#include <unordered_map> 
 #include <functional>
-#include <memory>
-#include "cpsi_writer.h"
-#include "libmedia_transfer_protocol/libmpeg/cpsi_writer.h"
-#include "libmedia_transfer_protocol/libmpeg/cstream_writer.h"
-#include "libmedia_transfer_protocol/libmpeg/cmpeg_type.h"
-#include "libmedia_transfer_protocol/libmpeg/cvideo_demux.h"
-#include "libmedia_transfer_protocol/libmpeg/cpsi_writer.h"
-#include "rtc_base/copy_on_write_buffer.h"
+#include <memory> 
 #include "libmedia_transfer_protocol/libmpeg/packet.h"
+#include "libmedia_transfer_protocol/libmpeg/cmpeg_type.h"
+
 namespace libmedia_transfer_protocol
 {
 	namespace libmpeg
 	{
-		class VideoEncoder
+
+		class AudioDemux
 		{
 		public:
+			AudioDemux() = default;
+			~AudioDemux() = default;
 
-			VideoEncoder() = default;
-			~VideoEncoder() = default;
-
-
-		public:
-			int32_t   EncodeVideo(StreamWriter *writer, bool key, std::shared_ptr<Packet> & data , int64_t dts);
-			
-			void SetPid(uint16_t pid);
-			void SetStreamType(TsStreamType type);
 
 		public:
-			int32_t   EncodeAvc(StreamWriter*writer, std::list<SampleBuf>& sample_list, bool key, int64_t pts);
-			int32_t   AvcInsertStartCode(std::list<SampleBuf> & sample_list, bool &startcode_inserted);
-			int32_t   WriteVideoPes(StreamWriter * writer, std::list<SampleBuf> & result, int32_t payload_size, 
-				int64_t pts, int64_t  dts, int32_t key);
+			int32_t   OnDemux(const char * data, size_t size, std::list<SampleBuf> & list);
 
+
+			int32_t   GetCodecId() const {
+				return sound_format_;
+			}
+
+			AACObjectType  GetObjectType() const
+			{
+				return aac_object_;
+			}
+			int32_t  GetSampleRateIndex() const
+			{
+				return aac_sample_rate_;
+			}
+			int32_t  GetChannel() const
+			{
+				return aac_channel_;
+			}
+		private:
+
+			int32_t   DemuxAAC(const char *data, size_t size, std::list<SampleBuf>& list);
+			int32_t    DemuxMP3(const char * data, size_t size, std::list<SampleBuf>& list);
+			int32_t    DemuxAACSequenceHeader(const char * data, size_t size);
 		private:
 
 
-			uint16_t  pid_{ 0XE000 };
-			TsStreamType  type_{ kTsStreamReserved };
-			int8_t cc_{-1};
-			bool   startcode_inserted_{ false };
-			bool sps_pps_appended_{ false };
-			VideoDemux     demux_;
+			// 音频编码格式   2:  mp3, 10: aac编码
+			int32_t sound_format_{ 0 };
+			//  采样率  448000
+			int32_t sound_rate_{ 0 };
+			// 采样深度  16 
+			int32_t  sound_size_{ 0 };
+			// 通道数
+			int32_t sound_type_{ 0 };
+			// aac 的序列头的消息
+			AACObjectType aac_object_;
+			int32_t aac_sample_rate_{ 0 };
+			int32_t aac_channel_{ 0 };
+
+			// 有没有收到aac序列头数据
+			bool  aac_ok_{ false };
 		};
+
+
 	}
 }
+
+
 #endif // 

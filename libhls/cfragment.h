@@ -3,7 +3,9 @@ created: 		2025-05-02
 
 author:			chensong
 
-purpose:		video encoder 
+purpose:		  _C_FRAGMENT_
+
+
 输赢不重要，答案对你们有什么意义才重要。
 
 光阴者，百代之过客也，唯有奋力奔跑，方能生风起时，是时代造英雄，英雄存在于时代。或许世人道你轻狂，可你本就年少啊。 看护好，自己的理想和激情。
@@ -21,63 +23,75 @@ purpose:		video encoder
 安静，淡然，代码就是我的一切，写代码就是我本心回归的最好方式，我还没找到本心猎手，但我相信，顺着这个线索，我一定能顺藤摸瓜，把他揪出来。
 ************************************************************************************************/
 
-#ifndef _C_VIDEO_ENCODER_
-#define _C_VIDEO_ENCODER_
+#ifndef _C_FRAGMENT_
+#define _C_FRAGMENT_
 
 
 #include <cstdint>
 #include <memory>
 
-#include "cstream_writer.h"
 #include <string>
 #include <unordered_map>
 #include <memory>
 #include <sstream>
+ 
+ 
 #include <unordered_map>
+ 
 #include <functional>
 #include <memory>
-#include "cpsi_writer.h"
-#include "libmedia_transfer_protocol/libmpeg/cpsi_writer.h"
 #include "libmedia_transfer_protocol/libmpeg/cstream_writer.h"
-#include "libmedia_transfer_protocol/libmpeg/cmpeg_type.h"
-#include "libmedia_transfer_protocol/libmpeg/cvideo_demux.h"
-#include "libmedia_transfer_protocol/libmpeg/cpsi_writer.h"
-#include "rtc_base/copy_on_write_buffer.h"
-#include "libmedia_transfer_protocol/libmpeg/packet.h"
+
+ 
 namespace libmedia_transfer_protocol
 {
 	namespace libmpeg
 	{
-		class VideoEncoder
+		class Packet;
+	}
+	namespace libhls
+	{
+		
+
+		const int32_t kFragmentStepSize = 128 * 1024;
+
+		class Fragment :public libmedia_transfer_protocol::libmpeg::StreamWriter
 		{
 		public:
-
-			VideoEncoder() = default;
-			~VideoEncoder() = default;
-
+			Fragment() = default;
+			~Fragment() = default;
 
 		public:
-			int32_t   EncodeVideo(StreamWriter *writer, bool key, std::shared_ptr<Packet> & data , int64_t dts);
-			
-			void SetPid(uint16_t pid);
-			void SetStreamType(TsStreamType type);
-
+			void AppendTimestamp(int64_t pts)override;
+			int32_t Write(void * buf, size_t size)  override;
+			char * Data()  override;
+			int32_t Size() override;
 		public:
-			int32_t   EncodeAvc(StreamWriter*writer, std::list<SampleBuf>& sample_list, bool key, int64_t pts);
-			int32_t   AvcInsertStartCode(std::list<SampleBuf> & sample_list, bool &startcode_inserted);
-			int32_t   WriteVideoPes(StreamWriter * writer, std::list<SampleBuf> & result, int32_t payload_size, 
-				int64_t pts, int64_t  dts, int32_t key);
 
+			//时长
+			int64_t  Duration() const;
+			const std::string &FileName() const;
+			void SetBaseFileName(const std::string& v);
+
+			// 序列号
+			int32_t SequenceNo() const;
+			//设置序列号
+			void SetSequenceNo(int32_t no);
+
+			void  Reset();
+			// 切片// 
+			std::shared_ptr<libmedia_transfer_protocol::libmpeg::Packet> & FragmentData();
 		private:
+			int64_t     duration_{ 0 };
+			std::string  filename_;
+			int64_t       start_dts_{ -1 };
+			std::shared_ptr<libmedia_transfer_protocol::libmpeg::Packet>   data_;
+			int32_t    buf_size_{ 512 * 1024 };
 
-
-			uint16_t  pid_{ 0XE000 };
-			TsStreamType  type_{ kTsStreamReserved };
-			int8_t cc_{-1};
-			bool   startcode_inserted_{ false };
-			bool sps_pps_appended_{ false };
-			VideoDemux     demux_;
+			int32_t   data_size_{ 0 };
+			int32_t   sequence_no_{ 0 };
 		};
 	}
 }
-#endif // 
+
+#endif //

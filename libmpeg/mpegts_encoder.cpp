@@ -28,20 +28,20 @@ namespace libmedia_transfer_protocol
 {
 	namespace libmpeg
 	{
-		int32_t   MpegTsEncoder::Encode(StreamWriter *writer, rtc::CopyOnWriteBuffer data, int64_t  dts)
+		int32_t   MpegTsEncoder::Encode(StreamWriter *writer, std::shared_ptr<Packet> &data, int64_t  dts)
 		{
 
-			//if (data->IsAudio())
+			 if (data->IsAudio())
 			{
 				//HLS_DEBUG << "TsEncoder audio end type : " << data->PacketType();
-				//return audio_encoder_.EnodeAudio(writer, data, dts);
+				return audio_encoder_.EnodeAudio(writer, data, dts);
 			}
-			//else if (data->IsVideo())
-			//{
-			//	bool key = data->IsKeyFrame();
-			//	//HLS_DEBUG << "TsEncoder video end type : " << data->PacketType();
-			//	return video_encoder_.EncodeVideo(writer, key, data, dts);
-			//}
+			else if (data->IsVideo())
+			{
+				bool key = data->IsKeyFrame();
+				//HLS_DEBUG << "TsEncoder video end type : " << data->PacketType();
+				return video_encoder_.EncodeVideo(writer, key, data, dts);
+			}
 			return 0;
 		}
 		void   MpegTsEncoder::SetStreamType(StreamWriter * writer, VideoCodecID vc, AudioCodecID ac)

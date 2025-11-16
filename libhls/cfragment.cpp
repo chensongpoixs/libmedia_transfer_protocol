@@ -3,7 +3,9 @@ created: 		2025-05-02
 
 author:			chensong
 
-purpose:		video encoder 
+purpose:		  _C_FRAGMENT_
+
+
 输赢不重要，答案对你们有什么意义才重要。
 
 光阴者，百代之过客也，唯有奋力奔跑，方能生风起时，是时代造英雄，英雄存在于时代。或许世人道你轻狂，可你本就年少啊。 看护好，自己的理想和激情。
@@ -21,63 +23,112 @@ purpose:		video encoder
 安静，淡然，代码就是我的一切，写代码就是我本心回归的最好方式，我还没找到本心猎手，但我相信，顺着这个线索，我一定能顺藤摸瓜，把他揪出来。
 ************************************************************************************************/
 
-#ifndef _C_VIDEO_ENCODER_
-#define _C_VIDEO_ENCODER_
 
-
-#include <cstdint>
-#include <memory>
-
-#include "cstream_writer.h"
-#include <string>
-#include <unordered_map>
-#include <memory>
-#include <sstream>
-#include <unordered_map>
-#include <functional>
-#include <memory>
-#include "cpsi_writer.h"
-#include "libmedia_transfer_protocol/libmpeg/cpsi_writer.h"
-#include "libmedia_transfer_protocol/libmpeg/cstream_writer.h"
+#include "libmedia_transfer_protocol/libhls/cfragment.h"
 #include "libmedia_transfer_protocol/libmpeg/cmpeg_type.h"
-#include "libmedia_transfer_protocol/libmpeg/cvideo_demux.h"
-#include "libmedia_transfer_protocol/libmpeg/cpsi_writer.h"
-#include "rtc_base/copy_on_write_buffer.h"
-#include "libmedia_transfer_protocol/libmpeg/packet.h"
+#include "libmedia_transfer_protocol/libmpeg/mpegts_encoder.h"
+#include <fcntl.h>
+#include "rtc_base/time_utils.h"
+#include <errno.h> 
+
 namespace libmedia_transfer_protocol
 {
-	namespace libmpeg
+	namespace libhls
 	{
-		class VideoEncoder
+		void Fragment::AppendTimestamp(int64_t pts)
 		{
-		public:
+			if (start_dts_ == -1)
+			{
+				start_dts_ = pts;
+			}
 
-			VideoEncoder() = default;
-			~VideoEncoder() = default;
-
-
-		public:
-			int32_t   EncodeVideo(StreamWriter *writer, bool key, std::shared_ptr<Packet> & data , int64_t dts);
-			
-			void SetPid(uint16_t pid);
-			void SetStreamType(TsStreamType type);
-
-		public:
-			int32_t   EncodeAvc(StreamWriter*writer, std::list<SampleBuf>& sample_list, bool key, int64_t pts);
-			int32_t   AvcInsertStartCode(std::list<SampleBuf> & sample_list, bool &startcode_inserted);
-			int32_t   WriteVideoPes(StreamWriter * writer, std::list<SampleBuf> & result, int32_t payload_size, 
-				int64_t pts, int64_t  dts, int32_t key);
-
-		private:
+			start_dts_ = std::min(start_dts_, pts);
+			duration_ = pts - start_dts_;
+		}
+		int32_t Fragment::Write(void * buf, size_t size)
+		{
+			if (!data_)
+			{
+				data_ = libmedia_transfer_protocol::libmpeg::Packet::NewPacket(buf_size_);
+			}
 
 
-			uint16_t  pid_{ 0XE000 };
-			TsStreamType  type_{ kTsStreamReserved };
-			int8_t cc_{-1};
-			bool   startcode_inserted_{ false };
-			bool sps_pps_appended_{ false };
-			VideoDemux     demux_;
-		};
+			if (data_->Space() < size)
+			{
+				buf_size_ += kFragmentStepSize;
+				while (data_size_ + size > buf_size_)
+				{
+					buf_size_ += kFragmentStepSize;
+				}
+				std::shared_ptr<libmedia_transfer_protocol::libmpeg::Packet> new_pkt = libmedia_transfer_protocol::libmpeg::Packet::NewPacket(buf_size_);
+				memcpy(new_pkt->Data(), data_->Data(), data_->PacketSize());
+				new_pkt->SetPacketSize(data_->PacketSize());
+				data_ = new_pkt;
+				// C++11 shared 智能指针  自动释放内存
+
+			}
+
+			memcpy(data_->Data() + data_->PacketSize(), buf, size);
+			data_->UpdatePacketSize(size);
+			data_size_ += size;
+			return size;
+
+		}
+		char * Fragment::Data()
+		{
+			return data_->Data() + data_->PacketSize();
+		}
+		int32_t Fragment::Size()
+		{
+			return  data_->PacketSize();
+		}
+
+
+		int64_t  Fragment::Duration() const
+		{
+			return duration_;
+		}
+		const std::string &Fragment::FileName() const
+		{
+			return filename_;
+		}
+		void Fragment::SetBaseFileName(const std::string& v)
+		{
+			filename_.clear();
+			filename_.append(v);
+			filename_.append("_");
+			filename_.append(std::to_string(rtc::SystemTimeMillis()));
+			filename_.append(".ts");
+		}
+
+		// 序列号
+		int32_t Fragment::SequenceNo() const
+		{
+			return sequence_no_;
+		}
+		//设置序列号
+		void Fragment::SetSequenceNo(int32_t no)
+		{
+			sequence_no_ = no;
+		}
+
+		void  Fragment::Reset()
+		{
+			duration_ = 0;
+			sequence_no_ = 0;
+			data_size_ = 0;
+			start_dts_ = -1;
+			//每个切片 都需要sps， pps
+			sps_pps_appended_ = false;
+			if (data_)
+			{
+				data_->SetPacketSize(0);
+			}
+		}
+		// 切片
+		std::shared_ptr<libmedia_transfer_protocol::libmpeg::Packet>& Fragment::FragmentData()
+		{
+			return data_;
+		}
 	}
 }
-#endif // 

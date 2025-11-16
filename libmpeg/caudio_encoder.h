@@ -47,6 +47,8 @@ purpose:		audio encoder
 #include "libmedia_transfer_protocol/libmpeg/cpsi_writer.h"
 #include "libmedia_transfer_protocol/libmpeg/cmpeg_type.h"
 #include "rtc_base/copy_on_write_buffer.h"
+#include "libmedia_transfer_protocol/libmpeg/packet.h"
+#include "libmedia_transfer_protocol/libmpeg/caudio_demux.h"
 namespace libmedia_transfer_protocol
 {
 	namespace libmpeg
@@ -57,7 +59,7 @@ namespace libmedia_transfer_protocol
 			AudioEncoder() = default;
 			~AudioEncoder() = default;
 		public:
-			int32_t  EnodeAudio(StreamWriter* writer, rtc::CopyOnWriteBuffer data /*void* data*/, int64_t dts);
+			int32_t  EnodeAudio(StreamWriter* writer, std::shared_ptr<Packet> & data, int64_t dts);
 			
 			void SetPid(uint16_t pid);
 			void SetStreamType(TsStreamType type);
@@ -75,7 +77,7 @@ namespace libmedia_transfer_protocol
 			TsStreamType  type_{ kTsStreamReserved };
 			int8_t    cc_{ -1 };
 
-			//AudioDemux     demux_;
+			AudioDemux     demux_;
 		};
 	}
 }

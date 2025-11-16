@@ -73,11 +73,11 @@ namespace libmedia_transfer_protocol
 		}
 
 
-		int32_t  AudioEncoder::EnodeAudio(StreamWriter* writer, rtc::CopyOnWriteBuffer data, int64_t dts)
+		int32_t  AudioEncoder::EnodeAudio(StreamWriter* writer, std::shared_ptr<Packet> & data, int64_t dts)
 		{
 			std::list<SampleBuf> list;
-			int ret;
-			//auto ret = demux_.OnDemux(data->Data(), data->PacketSize(), list);
+			//int ret;
+			auto ret = demux_.OnDemux(data->Data(), data->PacketSize(), list);
 			if (ret == -1)
 			{
 				//MPEGTS_ERROR << "";
@@ -95,7 +95,7 @@ namespace libmedia_transfer_protocol
 			
 
 			dts *= 90;
-			/*
+			 
 			if (demux_.GetCodecId() == kAudioCodecIDAAC)
 			{
 				return EncodeAAC(writer, list, dts);
@@ -104,7 +104,7 @@ namespace libmedia_transfer_protocol
 			{
 				return EncodeMP3(writer, list, dts);
 			}
-			*/
+			 
 			return 0;
 		}
 
@@ -137,13 +137,13 @@ namespace libmedia_transfer_protocol
 
 				uint8_t   adts_header[7] = {0XFF, 0XF9, 0X00, 0X00, 0X00, 0X0F, 0XFC};
 
-				AacProfile  profile;// = AacObjectType2AacProfile(demux_.GetObjectType());
+				AacProfile  profile = AacObjectType2AacProfile(demux_.GetObjectType());
 
 
 				adts_header[2] = (profile << 6) & 0XC0;
-				//adts_header[2] |= (demux_.GetSampleRateIndex() << 2) & 0X3C;
-				//adts_header[2] |= (demux_.GetChannel() >> 2) & 0X01;
-				//adts_header[3] = (demux_.GetChannel() << 6) & 0XC0;
+				 adts_header[2] |= (demux_.GetSampleRateIndex() << 2) & 0X3C;
+				 adts_header[2] |= (demux_.GetChannel() >> 2) & 0X01;
+				 adts_header[3] = (demux_.GetChannel() << 6) & 0XC0;
 
 
 				adts_header[3] |= (frame_length>>11) & 0X03;
