@@ -32,8 +32,8 @@ purpose:		http_parser
 安静，淡然，代码就是我的一切，写代码就是我本心回归的最好方式，我还没找到本心猎手，但我相信，顺着这个线索，我一定能顺藤摸瓜，把他揪出来。
 ************************************************************************************************/
 
-#ifndef _C_FLV_CONTEXT______
-#define _C_FLV_CONTEXT______
+#ifndef _C_FLV_ENCODER______
+#define _C_FLV_ENCODER______
 
 
 #include <cstdint>
@@ -153,16 +153,16 @@ namespace libmedia_transfer_protocol
 
 
 
-		class FlvContext
+		class FlvEncoder
 		{
 		public:
 
-		  explicit	FlvContext(  
+		  explicit	FlvEncoder(
 			  libnetwork::Connection* conn, const char * out_flv_file_name  = nullptr);
  
 			
 
-		  virtual ~FlvContext();
+		  virtual ~FlvEncoder();
 
 
 		public:
@@ -205,10 +205,9 @@ namespace libmedia_transfer_protocol
 
 			uint8_t * send_buffer_{nullptr};
 			int32_t   send_size_;
- 
-		//	MMediaHandler*   handler_;
+  
 		};
 	}
 }
 
-#endif  
+#endif   //FlvEncoder

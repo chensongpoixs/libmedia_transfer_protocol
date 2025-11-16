@@ -32,6 +32,10 @@
 #include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
 #include "libmedia_transfer_protocol/librtcp/buffer.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#include <time.h> 
+#endif
 
 
 
@@ -46,7 +50,7 @@ namespace libmedia_transfer_protocol {
 
           static   struct tm getLocalTime(time_t sec) {
                 struct tm tm;
-#ifdef _WIN32
+#ifdef _WIN32 
                 localtime_s(&tm, &sec);
 #else
                 no_locks_localtime(&tm, sec);
