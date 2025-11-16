@@ -21,18 +21,21 @@ purpose:		video encoder
 安静，淡然，代码就是我的一切，写代码就是我本心回归的最好方式，我还没找到本心猎手，但我相信，顺着这个线索，我一定能顺藤摸瓜，把他揪出来。
 ************************************************************************************************/
 #include "libmedia_transfer_protocol/libmpeg/mpegts_encoder.h"
+#include "libmedia_transfer_protocol/libmpeg/cstream_writer.h"
+#include "libmedia_transfer_protocol/libmpeg/cpsi_writer.h"
+
 namespace libmedia_transfer_protocol
 {
 	namespace libmpeg
 	{
-		int32_t   MpegTsEncoder::Encode(StreamWriter *writer, void *  data, int64_t  dts)
+		int32_t   MpegTsEncoder::Encode(StreamWriter *writer, rtc::CopyOnWriteBuffer data, int64_t  dts)
 		{
 
 			//if (data->IsAudio())
-			//{
-			//	//HLS_DEBUG << "TsEncoder audio end type : " << data->PacketType();
-			//	return audio_encoder_.EnodeAudio(writer, data, dts);
-			//}
+			{
+				//HLS_DEBUG << "TsEncoder audio end type : " << data->PacketType();
+				//return audio_encoder_.EnodeAudio(writer, data, dts);
+			}
 			//else if (data->IsVideo())
 			//{
 			//	bool key = data->IsKeyFrame();

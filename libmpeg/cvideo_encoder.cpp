@@ -89,11 +89,11 @@ namespace libmedia_transfer_protocol
 
 
 		//VideoEncoder
-		int32_t   VideoEncoder::EncodeVideo(StreamWriter *writer, bool key, void*  data, int64_t dts)
+		int32_t   VideoEncoder::EncodeVideo(StreamWriter *writer, bool key, rtc::CopyOnWriteBuffer data, int64_t dts)
 		{
 			std::list<SampleBuf> list;
-			int ret;
-			//auto ret = demux_.OnDemux(data->Data(), data->PacketSize(), list);
+			//int ret;
+			auto ret = demux_.OnDemux((const char *)data.data(), data.size(), list);
 			if (ret == -1)
 			{
 				LIBMPEG_LOG_T_F(LS_ERROR) << "video demux  error. ";
@@ -112,10 +112,10 @@ namespace libmedia_transfer_protocol
 
 			dts *= 90;
 
-			//if (demux_.GetCodecID() == kVideoCodecIDAVC)
-			//{
-			//	return EncodeAvc(writer, list, key, dts);
-			//} 
+			if (demux_.GetCodecID() == kVideoCodecIDAVC)
+			{
+				return EncodeAvc(writer, list, key, dts);
+			} 
 			return 0;
 		}
 
@@ -134,7 +134,7 @@ namespace libmedia_transfer_protocol
 			int32_t total_size = 0;
 			std::list<SampleBuf> result;
 			bool startcode_inserted = true;
-			//if (!demux_.HasAud())
+			if (!demux_.HasAud())
 			{
 				static uint8_t   default_aud_nalu[] = { 0X09, 0XF0 };
 				static SampleBuf  default_aud_buf((const char *)&default_aud_nalu[0], 2);
@@ -151,8 +151,8 @@ namespace libmedia_transfer_protocol
 				}
 
 				auto bytes = l.addr;
-				//NaluType type = (NaluType)(bytes[0] & 0X1f);
-				/*if (type == kNaluTypeIDR && !demux_.HasSpsPps() && 
+				NaluType type = (NaluType)(bytes[0] & 0X1f);
+				if (type == kNaluTypeIDR && !demux_.HasSpsPps() && 
 					(writer->GetSPS() != demux_.GetSPS() ||
 						writer->GetPPS() != demux_.GetPPS()||
 						!writer->GetSpsPpsAppended() ))
@@ -187,13 +187,13 @@ namespace libmedia_transfer_protocol
 				}
 				total_size += AvcInsertStartCode(result, startcode_inserted);
 				result.push_back({(const char *) l.addr, l.size });
-				total_size += l.size;*/
+				total_size += l.size;
 				
 			}
 			int64_t  pts = dts;
-			//if (demux_.GetCST() > 0)
+			if (demux_.GetCST() > 0)
 			{
-			//	pts = dts + demux_.GetCST()*90;
+				pts = dts + demux_.GetCST()*90;
 			}
 			return WriteVideoPes(writer, result, total_size, pts, dts, key);
 		}

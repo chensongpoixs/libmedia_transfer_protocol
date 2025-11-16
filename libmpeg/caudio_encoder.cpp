@@ -73,11 +73,11 @@ namespace libmedia_transfer_protocol
 		}
 
 
-		int32_t  AudioEncoder::EnodeAudio(StreamWriter* writer, void* data, int64_t dts)
+		int32_t  AudioEncoder::EnodeAudio(StreamWriter* writer, rtc::CopyOnWriteBuffer data, int64_t dts)
 		{
 			std::list<SampleBuf> list;
 			int ret;
-			///auto ret = demux_.OnDemux(data->Data(), data->PacketSize(), list);
+			//auto ret = demux_.OnDemux(data->Data(), data->PacketSize(), list);
 			if (ret == -1)
 			{
 				//MPEGTS_ERROR << "";

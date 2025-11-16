@@ -50,6 +50,39 @@ namespace libmedia_transfer_protocol
 {
 	namespace libmpeg
 	{
+		enum NaluType
+		{
+			kNaluTypeForbidden = 0,
+
+			kNaluTypeNonIDR = 1,
+			kNaluTypeDataPartitionA = 2,
+			kNaluTypeDataPartitionB = 3,
+			kNaluTypeDataPartitionC = 4,
+			kNaluTypeIDR = 5,
+			kNaluTypeSEI = 6,
+			kNaluTypeSPS = 7,
+			kNaluTypePPS = 8,
+			kNaluTypeAccessUnitDelimiter = 9,
+			kNaluTypeEOSequence = 10,
+			kNaluTypeEOStream = 11,
+			kNaluTypeFilterData = 12,
+			kNaluTypeSPSExt = 13,
+			kNaluTypePrefixNALU = 14,
+			kNaluTypeSubsetSPS = 15,
+			kNaluTypeLayerWithoutPartition = 19,
+			kNaluTypeCodedSliceExt = 20,
+		};
+
+
+		enum FrameType
+		{
+			kFrameTypeKeyFrame1 = 1,
+			kFrameTypeInterFrame = 2,
+			kFrameTypeDisposableInterFrame = 3,
+			kFrameTypeGeneratedKeyFrame = 4,
+			kFrameTypeVideoInfoFrame = 5,
+		};
+
 
 		enum AudioCodecID
 		{

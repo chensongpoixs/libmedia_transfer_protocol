@@ -48,6 +48,7 @@ purpose:		video encoder
 
 #include "libmedia_transfer_protocol/libmpeg/cvideo_encoder.h"
 #include "libmedia_transfer_protocol/libmpeg/caudio_encoder.h"
+#include "rtc_base/copy_on_write_buffer.h"
 namespace libmedia_transfer_protocol
 {
 	namespace libmpeg
@@ -61,7 +62,7 @@ namespace libmedia_transfer_protocol
 		public:
 
 
-			int32_t   Encode(StreamWriter *writer, void * data, int64_t  dts);
+			int32_t   Encode(StreamWriter *writer, rtc::CopyOnWriteBuffer data/*void * data*/, int64_t  dts);
 			void   SetStreamType(StreamWriter * writer, VideoCodecID vc, AudioCodecID ac);
 			int32_t   WritePatPmt(StreamWriter * writer);
 		private:

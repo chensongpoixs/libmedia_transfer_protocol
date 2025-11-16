@@ -40,6 +40,9 @@ purpose:		video encoder
 #include "libmedia_transfer_protocol/libmpeg/cpsi_writer.h"
 #include "libmedia_transfer_protocol/libmpeg/cstream_writer.h"
 #include "libmedia_transfer_protocol/libmpeg/cmpeg_type.h"
+#include "libmedia_transfer_protocol/libmpeg/cvideo_demux.h"
+#include "libmedia_transfer_protocol/libmpeg/cpsi_writer.h"
+#include "rtc_base/copy_on_write_buffer.h"
 namespace libmedia_transfer_protocol
 {
 	namespace libmpeg
@@ -53,7 +56,7 @@ namespace libmedia_transfer_protocol
 
 
 		public:
-			int32_t   EncodeVideo(StreamWriter *writer, bool key, void * data, int64_t dts);
+			int32_t   EncodeVideo(StreamWriter *writer, bool key, rtc::CopyOnWriteBuffer data/*void * data*/, int64_t dts);
 			
 			void SetPid(uint16_t pid);
 			void SetStreamType(TsStreamType type);
@@ -72,7 +75,7 @@ namespace libmedia_transfer_protocol
 			int8_t cc_{-1};
 			bool   startcode_inserted_{ false };
 			bool sps_pps_appended_{ false };
-			//VideoDemux     demux_;
+			VideoDemux     demux_;
 		};
 	}
 }

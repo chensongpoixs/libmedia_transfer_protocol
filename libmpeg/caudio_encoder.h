@@ -46,6 +46,7 @@ purpose:		audio encoder
 #include <memory>
 #include "libmedia_transfer_protocol/libmpeg/cpsi_writer.h"
 #include "libmedia_transfer_protocol/libmpeg/cmpeg_type.h"
+#include "rtc_base/copy_on_write_buffer.h"
 namespace libmedia_transfer_protocol
 {
 	namespace libmpeg
@@ -56,7 +57,7 @@ namespace libmedia_transfer_protocol
 			AudioEncoder() = default;
 			~AudioEncoder() = default;
 		public:
-			int32_t  EnodeAudio(StreamWriter* writer, void* data, int64_t dts);
+			int32_t  EnodeAudio(StreamWriter* writer, rtc::CopyOnWriteBuffer data /*void* data*/, int64_t dts);
 			
 			void SetPid(uint16_t pid);
 			void SetStreamType(TsStreamType type);
