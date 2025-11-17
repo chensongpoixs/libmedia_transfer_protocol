@@ -20,6 +20,7 @@ PMT：节目映射表
 NIT：网络信息表
 
 CAT：条件存储表
+
 输赢不重要，答案对你们有什么意义才重要。
 
 光阴者，百代之过客也，唯有奋力奔跑，方能生风起时，是时代造英雄，英雄存在于时代。或许世人道你轻狂，可你本就年少啊。 看护好，自己的理想和激情。
@@ -66,12 +67,34 @@ namespace libmedia_transfer_protocol
 			~PSIWriter() = default;
 
 		public:
-			
+			 
+			/**
+			* psi包切分多个ts包发送出去
+			* @param w: 写入类
+			* @param buf: psi的包数据
+			* @param len: psi包数据的大小
+			* return 返回值 
+			*/
 			void PushSection(StreamWriter*w, uint8_t * buf, size_t len);
 			
 		public:
+			/**
+			*  组装Psi包的结构
+			* @param w: 写入类
+			* @param id: section id 
+			* @param sec_num: psi的包数据
+			* @param last_sec_num: psi的包数据 
+			* @param buf: psi的包数据
+			* @param len: psi包数据的大小
+			* return 返回值
+			*/
 			int32_t WriteSection(StreamWriter* w, int32_t id, int32_t sec_num, int32_t last_sec_num, uint8_t * buf, int32_t len);
 
+			/**
+			* 设置psi的版本 
+			* @param v: 版本  
+			* return 返回值
+			*/
 			void SetVersion(uint8_t v);
 
 		protected:

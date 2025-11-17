@@ -55,14 +55,18 @@ namespace libmedia_transfer_protocol
 			PatWriter() 
 				: PSIWriter()
 			{
-				pid_ = 0X0000;
-				table_id_ = 0X00;
+				pid_ = 0X0000; //固定 0x0000
+				table_id_ = 0X00; // table_id 固定 0x00
 			}
 			/*virtual*/ ~PatWriter() = default;
 
 		public:
 
-
+			/**
+			*  Pat 
+			* @param w: 写入类 
+			* return 返回值
+			*/
 			void WritePat(StreamWriter * w);
 
 
@@ -71,7 +75,7 @@ namespace libmedia_transfer_protocol
 
 
 			uint16_t  program_number_{0X0001};
-			uint16_t  pmt_pid_{ 0X1001 };
+			uint16_t  pmt_pid_{ 0X1001 }; // program_map_PID 
 			uint16_t  transport_stream_id_{ 0X0001 };
 		};
 	}

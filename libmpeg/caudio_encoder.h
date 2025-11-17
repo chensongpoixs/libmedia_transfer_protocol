@@ -59,6 +59,13 @@ namespace libmedia_transfer_protocol
 			AudioEncoder() = default;
 			~AudioEncoder() = default;
 		public:
+			/**
+			*  Pat
+			* @param w: 写入类
+			* @param data: packet
+			* @param dts: dts 
+			* return 返回值
+			*/
 			int32_t  EnodeAudio(StreamWriter* writer, std::shared_ptr<Packet> & data, int64_t dts);
 			
 			void SetPid(uint16_t pid);

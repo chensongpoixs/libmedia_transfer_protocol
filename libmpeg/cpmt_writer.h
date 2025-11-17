@@ -67,15 +67,28 @@ namespace libmedia_transfer_protocol
 
 			~PmtWriter() = default;
 		public:
-
+			/**
+			*  Pmt
+			* @param w: 写入类
+			* return 返回值
+			*/
 			void WritePmt(StreamWriter *w);
-
+			/**
+			*  增加一路原始流的信息
+			* @param program: 原始流信息
+			* return 返回值
+			*/
 			void AddProgramInfo(ProgramInfoPtr & program);
+			/**
+			*  设置pid 
+			* @param pid: pid
+			* return 返回值
+			*/
 			void SetPcrPid(int32_t pid);
 		private:
 			uint16_t    pcr_id_{ 0XE000 };
 			// 音视频数据
-			std::vector< ProgramInfoPtr> programs_;
+			std::vector< ProgramInfoPtr> programs_;  //多少路原始流
 
 		};
 	}

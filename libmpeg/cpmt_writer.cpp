@@ -33,14 +33,44 @@ namespace libmedia_transfer_protocol
 	namespace libmpeg
 	{
 
-
+		/**
+		*  ============================section  data 结构===========================================
+		*
+		*      reserved                                  3       bslbf
+		*      PCR_PID                                  13       uimsbf 
+		*      reserved                                  4       bslbf 
+		*      program_info_length                      12       uimsbf 
+		*      for (i = 0; i <N; ++i) {
+		*                descriptor()
+		*      }
+		*      for (i = 0; i < N1; ++i){
+		*            stream_type                         8       uimsbf 
+		*            reserved                            3       bslbf 
+		*            elementary_PID                     13       uimsbf 
+		*         
+		*            reserved                            4       bslbf 
+		*            ES_info_length                     12       uimsbf 
+		*            for (i = 0; i < N2; ++i){
+		*                     descriptor()
+		*            }
+		*      }
+		*
+		*
+		*
+		*
+		*  Pmt
+		* @param w: 写入类
+		* return 返回值
+		*/
 		void PmtWriter::WritePmt(StreamWriter *w)
 		{
 			uint8_t section[kSectionMaxSize], *q;
 			q = section;
+			// PCR_PID
 			libmedia_transfer_protocol::ByteWriter<uint16_t>::WriteBigEndian(q, 0XE000 | (pcr_id_));
 			 
 			q += 2;
+			// reserved
 			libmedia_transfer_protocol::ByteWriter<uint16_t>::WriteBigEndian(q, 0XE000 | (0));
 			 
 			q += 2;

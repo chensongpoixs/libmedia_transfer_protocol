@@ -32,6 +32,24 @@ namespace libmedia_transfer_protocol
 {
 	namespace libmpeg
 	{
+			/**
+			*   ========================== Section data 结构===============================================
+			* 
+			*          for (int i = 0; i < N; ++i) {
+			*					propram_number; ///     16 uimsbf 
+			*					reserved                 3 Bslbf
+			*                   if (program_number == '0') { //  
+			*                       network_PID                 // 13 Uimsbf
+			*                   } else {
+			*                       program_map_PID         //   13 uimsbf 
+			*                   }
+			*           }
+			*  ==================================================================================================
+			* Pat 
+			*
+			* @param w: 写入类 
+			* return 返回值
+			*/
 		void PatWriter::WritePat(StreamWriter * w)
 		{
 			uint8_t section[kSectionMaxSize], *q;
