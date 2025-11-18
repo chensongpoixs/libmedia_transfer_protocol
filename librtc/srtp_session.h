@@ -81,12 +81,7 @@ namespace libmedia_transfer_protocol {
 			static const char* GetErrorString(srtp_err_status_t code);
 		public:
 			
-			//bool Init(const std::string &recv_key, const std::string &send_key);
-			//rtc::Buffer RtpProtect(rtc::Buffer &pkt);
-			//rtc::Buffer RtcpProtect(rtc::Buffer &pkt);
-			//rtc::Buffer SrtpUnprotect(rtc::Buffer &pkt);
-			//rtc::Buffer SrtcpUnprotect(rtc::Buffer &pkt);
-			//rtc::Buffer SrtcpUnprotect(const char *buf, size_t size);
+			
 			bool EncryptRtp(const uint8_t** data, size_t* len);
 			bool DecryptSrtp(uint8_t* data, size_t* len);
 			bool EncryptRtcp(const uint8_t** data, size_t* len);
@@ -97,10 +92,7 @@ namespace libmedia_transfer_protocol {
 			// Allocated by this.
 			srtp_ctx_t_* session_{ nullptr };
 			uint8_t EncryptBuffer[kEncryptBufferSize];
-			//srtp_ctx_t_* send_ctx_{ nullptr };
-			//srtp_ctx_t_* recv_ctx_{ nullptr };
-			//char w_buffer_[kSrtpMaxBufferSize];
-			//char r_buffer_[kSrtpMaxBufferSize];
+			
 		};
 	}
 }

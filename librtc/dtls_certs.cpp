@@ -130,14 +130,17 @@ namespace libmedia_transfer_protocol {
 			if (private_key_)
 			{
 				EVP_PKEY_free(private_key_);
+				private_key_ = NULL;
 			}
 			if (certificate_)
 			{
 				X509_free(certificate_);
+				certificate_ = NULL;
 			}
 			if (ssl_ctx_)
 			{
 				SSL_CTX_free(ssl_ctx_);
+				ssl_ctx_ = NULL;
 			}
 		}
 		 std::vector<libssl::Fingerprint> DtlsCerts::Fingerprints() 

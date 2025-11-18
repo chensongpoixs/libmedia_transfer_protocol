@@ -172,8 +172,6 @@ namespace libmedia_transfer_protocol {
 			bool IsRtcp(const uint8_t * data, int32_t len);
 		 
 		private:
-
-
 			std::unique_ptr<libnetwork::UdpServer>      udp_server_;
 
 		};

@@ -696,6 +696,7 @@ namespace libmedia_transfer_protocol {
 			// Stop the DTLS timer.
 			//this->timer->Stop();
 			//dtls_queue_.~TaskQueue();
+			
 			// We need to reset the SSL instance so we need to "shutdown" it, but we
 			// don't want to send a Close Alert to the peer, so just don't call
 			// SendPendingOutgoingDTLSData().
@@ -747,14 +748,12 @@ namespace libmedia_transfer_protocol {
 			}
 
 			// NOTE: We assume that "use_srtp" DTLS extension is required even if
-			// there is no audio/video.
-			//MS_WARN_2TAGS(dtls, srtp, "SRTP crypto suite not negotiated");
+			// there is no audio/video. 
 			LIBSRTP_LOG(LS_INFO) << "SRTP crypto suite not negotiated";
 			Reset();
 
 			// Set state and notify the listener.
 			this->state_ = DtlsState::FAILED;
-			//this->listener->OnDtlsTransportFailed(this);
 			SignalDtlsFailed(this);
 			return false;
 		}
@@ -972,14 +971,7 @@ namespace libmedia_transfer_protocol {
 
 			// Set state and notify the listener.
 			this->state_ = DtlsState::CONNECTED;
-			//this->listener->OnDtlsTransportConnected(
-			//	this,
-			//	srtpCryptoSuite,
-			//	srtpLocalMasterKey,
-			//	srtpMasterLength,
-			//	srtpRemoteMasterKey,
-			//	srtpMasterLength,
-			//	this->remoteCert);
+			
 			SignalDtlsConnected(this,  
 				srtpCryptoSuite,
 				srtpLocalMasterKey,
