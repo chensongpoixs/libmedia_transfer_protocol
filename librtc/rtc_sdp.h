@@ -78,6 +78,7 @@ namespace libmedia_transfer_protocol {
 			const std::string &GetLocalPasswd()const;
 			const std::string &GetLocalUFrag()const;
 			uint32_t VideoSsrc() const;
+			uint32_t VideoRtxSsrc() const;
 			uint32_t AudioSsrc() const;
 			const DataChannelParams& GetDataChannelParams() const;
 			

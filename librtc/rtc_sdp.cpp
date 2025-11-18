@@ -402,6 +402,10 @@ namespace libmedia_transfer_protocol {
 		{
 			return video_ssrc_;
 		}
+		uint32_t RtcSdp::VideoRtxSsrc() const
+		{
+			return video_rtx_ssrc_;
+		}
 		uint32_t RtcSdp::AudioSsrc() const
 		{
 			return audio_ssrc_;
