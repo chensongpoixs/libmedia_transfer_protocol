@@ -289,7 +289,25 @@ class ByteWriter<T, 2, false> {
     data[1] = val >> 8;
   }
 };
+// Specializations for four byte words.
+template <typename T>
+class ByteReader<T, 3, false> {
+ public:
+  static T ReadBigEndian(const uint8_t* data) {
+    static_assert(sizeof(T) >= 3, kSizeErrorMsg);
+    return (Get(data, 0) << 24) | (Get(data, 1) << 16) | (Get(data, 2) << 8) ;
+  }
 
+  static T ReadLittleEndian(const uint8_t* data) {
+    static_assert(sizeof(T) >= 3, kSizeErrorMsg);
+    return Get(data, 0) | (Get(data, 1) << 8) | (Get(data, 2) << 16);
+  }
+
+ private:
+  inline static T Get(const uint8_t* data, unsigned int index) {
+    return static_cast<T>(data[index]);
+  }
+};
 // Specializations for four byte words.
 template <typename T>
 class ByteReader<T, 4, false> {

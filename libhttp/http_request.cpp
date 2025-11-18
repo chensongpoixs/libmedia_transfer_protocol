@@ -63,7 +63,7 @@ namespace  libmedia_transfer_protocol {
 		{
 			auto res = std::make_shared<HttpRequest>(false);
 			res->SetStatusCode(400);
-			res->AddHeader("User-Agent", "WebServer");
+			res->AddHeader("User-Agent", "GbMediaServer");
 			res->AddHeader("Access-Control-Allow-Origin", "*");
 			res->AddHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
 			res->AddHeader("Allow", "POST, GET, OPTIONS");
@@ -74,7 +74,7 @@ namespace  libmedia_transfer_protocol {
 		{
 			auto res = std::make_shared<HttpRequest>(false);
 			res->SetStatusCode(404);
-			res->AddHeader("User-Agent", "WebServer");
+			res->AddHeader("User-Agent", "GbMediaServer");
 			res->AddHeader("Access-Control-Allow-Origin", "*");
 			res->AddHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
 			res->AddHeader("Allow", "POST, GET, OPTIONS");
@@ -85,7 +85,7 @@ namespace  libmedia_transfer_protocol {
 		{
 			auto res = std::make_shared<HttpRequest>(false);
 			res->SetStatusCode(200);
-			res->AddHeader("server", "WebServer");
+			res->AddHeader("server", "GbMediaServer");
 			res->AddHeader("content-length", "0");
 			res->AddHeader("content-type", "text/plain");
 			res->AddHeader("Access-Control-Allow-Origin", "*");
