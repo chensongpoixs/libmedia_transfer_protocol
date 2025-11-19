@@ -1,4 +1,15 @@
-﻿/***********************************************************************************************
+﻿/******************************************************************************
+ *  Copyright (c) 2025 The CRTC project authors . All Rights Reserved.
+ *
+ *  Please visit https://chensongpoixs.github.io for detail
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
+ ******************************************************************************/
+/***********************************************************************************************
 created: 		2025-05-02
 
 author:			chensong
@@ -51,7 +62,7 @@ namespace libmedia_transfer_protocol
 	namespace libhls
 	{
 
-		using FragmentPtr = std::shared_ptr<Fragment>;
+		//using FragmentPtr = std::shared_ptr<Fragment>;
 
 
 		class FragmentWindow
@@ -63,14 +74,14 @@ namespace libmedia_transfer_protocol
 		public:
 
 			//增加一个切片
-			void AppendFragment(FragmentPtr &&fragment);
+			void AppendFragment(std::shared_ptr<Fragment> &&fragment);
 			//释放老的切片数据 过期啦~~~
 			void Shrink();
 
 			// 获取一个空闲切片  没有空闲切片就创建一个切片
-			FragmentPtr GetIdleFragment();
+			std::shared_ptr<Fragment> GetIdleFragment();
 
-			const FragmentPtr & GetFragmentByName(const std::string & name)  ;
+			const std::shared_ptr<Fragment> & GetFragmentByName(const std::string & name)  ;
 			//  
 			std::string GetPlayList()  ;
 
@@ -81,10 +92,10 @@ namespace libmedia_transfer_protocol
 			//切片窗口大小
 			int32_t   window_size_{5};
 			// 切片数据
-			std::vector< FragmentPtr> fragments_;
+			std::vector< std::shared_ptr<Fragment>> fragments_;
 
 			//空闲的切片
-			std::vector< FragmentPtr>free_fragments_;
+			std::vector< std::shared_ptr<Fragment>>free_fragments_;
 
 			// m3u8 表
 			std::string playlist_;

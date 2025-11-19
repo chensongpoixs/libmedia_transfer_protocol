@@ -1,4 +1,15 @@
-﻿/***********************************************************************************************
+﻿/******************************************************************************
+ *  Copyright (c) 2025 The CRTC project authors . All Rights Reserved.
+ *
+ *  Please visit https://chensongpoixs.github.io for detail
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
+ ******************************************************************************/
+/***********************************************************************************************
 created: 		2025-05-02
 
 author:			chensong
@@ -36,7 +47,7 @@ namespace libmedia_transfer_protocol {
 	{
 		namespace
 		{
-			static FragmentPtr    fragment_null;
+			static std::shared_ptr<Fragment>    fragment_null;
 		}
 
 		FragmentWindow::FragmentWindow(int32_t size )
@@ -47,7 +58,7 @@ namespace libmedia_transfer_protocol {
 		{}
  
 		//增加一个切片
-		void FragmentWindow::AppendFragment(FragmentPtr &&fragment)
+		void FragmentWindow::AppendFragment(std::shared_ptr<Fragment> &&fragment)
 		{
 			{
 				std::lock_guard<std::mutex> lk(lock_);
@@ -61,7 +72,7 @@ namespace libmedia_transfer_protocol {
 		
 
 		// 获取一个空闲切片  没有空闲切片就创建一个切片
-		FragmentPtr FragmentWindow::GetIdleFragment()
+		std::shared_ptr<Fragment> FragmentWindow::GetIdleFragment()
 		{
 			std::lock_guard<std::mutex> lk(lock_);
 
@@ -74,7 +85,7 @@ namespace libmedia_transfer_protocol {
 			 return p;
 		}
 
-		const FragmentPtr &FragmentWindow::GetFragmentByName(const std::string & name)  
+		const std::shared_ptr<Fragment> &FragmentWindow::GetFragmentByName(const std::string & name)
 		{
 			std::lock_guard<std::mutex> lk(lock_);
 			for (auto & f : fragments_)

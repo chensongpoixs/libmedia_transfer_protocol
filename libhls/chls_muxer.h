@@ -1,4 +1,15 @@
-﻿/***********************************************************************************************
+﻿/******************************************************************************
+ *  Copyright (c) 2025 The CRTC project authors . All Rights Reserved.
+ *
+ *  Please visit https://chensongpoixs.github.io for detail
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
+ ******************************************************************************/
+/***********************************************************************************************
 created: 		2025-05-02
 
 author:			chensong
@@ -64,15 +75,15 @@ namespace libmedia_transfer_protocol
 		public:
 			std::string  PlayList();
 			void OnPacket(std::shared_ptr<libmedia_transfer_protocol::libmpeg::Packet> & packet);
-			FragmentPtr GetFragment(const std::string & name);
-			void ParseCodec(FragmentPtr & fragment, std::shared_ptr<libmedia_transfer_protocol::libmpeg::Packet>&packet);
+			std::shared_ptr<Fragment> GetFragment(const std::string & name);
+			void ParseCodec(std::shared_ptr<Fragment> & fragment, std::shared_ptr<libmedia_transfer_protocol::libmpeg::Packet>&packet);
 		private:
 			bool   IsCodecHeader(const std::shared_ptr<libmedia_transfer_protocol::libmpeg::Packet>& packet);
 		private:
 			FragmentWindow fragment_window_;
 			libmedia_transfer_protocol::libmpeg::MpegTsEncoder         encoder_;
 
-			FragmentPtr	 current_fragment_;
+			std::shared_ptr<Fragment>	 current_fragment_;
 
 			std::string  stream_name_;
 			int32_t     fragment_seq_no_{ 0 };
