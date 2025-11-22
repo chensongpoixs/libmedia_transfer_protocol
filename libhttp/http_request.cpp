@@ -232,7 +232,7 @@ namespace  libmedia_transfer_protocol {
 					
 					if (!k.empty())
 					{
-						SetParameter(std::move(k), std::move(v));
+					SetParameter(std::move(k), std::move(v));
 					}
 				}
 				else

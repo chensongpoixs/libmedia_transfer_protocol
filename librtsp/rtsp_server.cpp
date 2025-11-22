@@ -33,8 +33,8 @@ namespace libmedia_transfer_protocol {
 		namespace {
 			// 辅助函数：检查字符串是否以指定前缀开头
 			bool starts_with(const std::string& str, const std::string& prefix) {
-				return str.size() >= prefix.size() &&
-					str.compare(0, prefix.size(), prefix) == 0;
+				return str.size() >= prefix.size() && 
+					   str.compare(0, prefix.size(), prefix) == 0;
 			}
 		}
 		RtspServer::RtspServer()
