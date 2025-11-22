@@ -1,11 +1,11 @@
+ï»¿
 
 
 
+# HTTP-FLVåè®®
 
-# HTTP-FLVĞ­Òé
 
-
-@[TOC](HTTP-FLVĞ­Òé)
+@[TOC](HTTP-FLVåè®®)
 
 
 </font>
@@ -14,36 +14,36 @@
 
   
 
-# Ç°ÑÔ
+# å‰è¨€
  
-http-flv ÆäÊµÍøÂçÖĞ·¢ËÍflvÎÄ¼ş£¬ Ò²ÊÇÍøÂç¸ñÊ½
+http-flv å…¶å®ç½‘ç»œä¸­å‘é€flvæ–‡ä»¶ï¼Œ ä¹Ÿæ˜¯ç½‘ç»œæ ¼å¼
 
 
 
 
 
-## Ò»¡¢FLV¼ò½é
-Flash Video£¨¼ò³ÆFLV£©£¬ÊÇÒ»ÖÖÍøÂçÊÓÆµ¸ñÊ½£¬Ò²ÊÇÒ»ÖÖÁ÷Ã½Ìå¸ñÊ½¡£
+## ä¸€ã€FLVç®€ä»‹
+Flash Videoï¼ˆç®€ç§°FLVï¼‰ï¼Œæ˜¯ä¸€ç§ç½‘ç»œè§†é¢‘æ ¼å¼ï¼Œä¹Ÿæ˜¯ä¸€ç§æµåª’ä½“æ ¼å¼ã€‚
 
-FLVÎÄ¼şÓÉ FLV File Header + FLV File Body×é³É¡£
+FLVæ–‡ä»¶ç”± FLV File Header + FLV File Bodyç»„æˆã€‚
 
 ![](img/flv_tag.png)
  
 
-## ¶ş¡¢FLV File Header
+## äºŒã€FLV File Header
 
- FLV File Header¹Ì¶¨Îª9¸ö×Ö½Ú£¬ÓÃÀ´ÃèÊö°æ±¾ºÅ£¬ÓĞÃ»ÓĞÒôÊÓÆµ
-½á¹¹ÈçÏÂ£º
+ FLV File Headerå›ºå®šä¸º9ä¸ªå­—èŠ‚ï¼Œç”¨æ¥æè¿°ç‰ˆæœ¬å·ï¼Œæœ‰æ²¡æœ‰éŸ³è§†é¢‘
+ç»“æ„å¦‚ä¸‹ï¼š
 
-|Ãû³Æ	|±ÈÌØÊı|	ÃèÊö|
+|åç§°	|æ¯”ç‰¹æ•°|	æè¿°|
 |:---:|:---:|:---:|
-|Signature	|24	|Ç©Ãû£¬¹Ì¶¨Îª¡°FLV¡±|
-|Version	|8	|°æ±¾ºÅ£¬¹Ì¶¨Îª0x01£¬±íÊ¾FLV Version 1|
-|TypeFlagsReserved	|5	|È«0|
-|TypeFlagsAudio	|1	|1±íÊ¾ÓĞaudio tag£¬0±íÊ¾Ã»ÓĞaudio tag|
-|TypeFlagsReserved	|1	|È«0|
-|TypeFlagsVideo	|1	|1±íÊ¾ÓĞvideo tag£¬0±íÊ¾Ã»ÓĞvideo tag|
-|DataOffset|	32	|FLV headerµÄ´óĞ¡£¬µ¥Î»ÊÇ×Ö½Ú|
+|Signature	|24	|ç­¾åï¼Œå›ºå®šä¸ºâ€œFLVâ€|
+|Version	|8	|ç‰ˆæœ¬å·ï¼Œå›ºå®šä¸º0x01ï¼Œè¡¨ç¤ºFLV Version 1|
+|TypeFlagsReserved	|5	|å…¨0|
+|TypeFlagsAudio	|1	|1è¡¨ç¤ºæœ‰audio tagï¼Œ0è¡¨ç¤ºæ²¡æœ‰audio tag|
+|TypeFlagsReserved	|1	|å…¨0|
+|TypeFlagsVideo	|1	|1è¡¨ç¤ºæœ‰video tagï¼Œ0è¡¨ç¤ºæ²¡æœ‰video tag|
+|DataOffset|	32	|FLV headerçš„å¤§å°ï¼Œå•ä½æ˜¯å­—èŠ‚|
 
 
 ```javascript
@@ -52,26 +52,26 @@ struct FLVHeader{
 	char flv[3];
 	//File version (for example, 0x01 for FLV version 1)
 	uint8_t version; 
-	// ±£Áô,ÖÃ0   
+	// ä¿ç•™,ç½®0   
 	uint8_t : 5;
-	// ÊÇ·ñÓĞÒôÆµ   
+	// æ˜¯å¦æœ‰éŸ³é¢‘   
 	uint8_t have_audio : 1;
-	// ±£Áô,ÖÃ0   
+	// ä¿ç•™,ç½®0   
 	uint8_t : 1;
-	// ÊÇ·ñÓĞÊÓÆµ   
+	// æ˜¯å¦æœ‰è§†é¢‘   
 	uint8_t have_video : 1;
-	¹Ì¶¨Îª9   
+	å›ºå®šä¸º9   
 	uint32_t length;
-	// ¹Ì¶¨Îª0   
+	// å›ºå®šä¸º0   
 	uint32_t previous_tag_size0;
 };
 
 ```
 
-## Èı¡¢FLV File Body
+## ä¸‰ã€FLV File Body
 
-FLV File BodyÓÉ PreviousTagSize0+tag1+PreviousTagSize1+¡­+tagN+PreviousTagSizeN×é³É¡£
-PreviousTagSize ÊÇÒ»¸ö4×Ö½ÚµÄÕûÊı£¬±íÊ¾Ç°Ò»¸öTAGµÄ´óĞ¡¡£
+FLV File Bodyç”± PreviousTagSize0+tag1+PreviousTagSize1+â€¦+tagN+PreviousTagSizeNç»„æˆã€‚
+PreviousTagSize æ˜¯ä¸€ä¸ª4å­—èŠ‚çš„æ•´æ•°ï¼Œè¡¨ç¤ºå‰ä¸€ä¸ªTAGçš„å¤§å°ã€‚
 
 |PreviousTagSize0|tag1|PreviousTagSize1|PreviousTagSize1|tag2|PreviousTagSize2|...|tagN|PreviousTagSizeN|
 
@@ -93,22 +93,22 @@ PreviousTagSize ÊÇÒ»¸ö4×Ö½ÚµÄÕûÊı£¬±íÊ¾Ç°Ò»¸öTAGµÄ´óĞ¡¡£
 
 ```
 
-## ËÄ¡¢Flv Tag ´æ´¢ÒôÆµºÍÊÓÆµÊı¾İµÄµØ·½
+## å››ã€Flv Tag å­˜å‚¨éŸ³é¢‘å’Œè§†é¢‘æ•°æ®çš„åœ°æ–¹
 
-FLV tagÓÉ tag header + tag body×é³É¡£
+FLV tagç”± tag header + tag bodyç»„æˆã€‚
 
 |Tag Header|Tag Body|
 
 
-tag header¹Ì¶¨Îª11¸ö×Ö½Ú£¬½á¹¹ÈçÏÂ£º
+tag headerå›ºå®šä¸º11ä¸ªå­—èŠ‚ï¼Œç»“æ„å¦‚ä¸‹ï¼š
 
-|Ãû³Æ|	±ÈÌØÊı|	ÃèÊö|
+|åç§°|	æ¯”ç‰¹æ•°|	æè¿°|
 |---:|:---:|:---:|
-|TagType|	8|	tagÀàĞÍ <br> 8£ºaudio<br>9£ºvideo<br>18£ºscript data<br>ÆäËû£º±£Áô|
-|DataSize	|24|	message ³¤¶È£¬´ÓStreamIDºóÃæµ½tag½áÊø|
-|Timestamp	|24	| <font color='red'>Ïà¶ÔÓÚµÚÒ»¸ötagµÄÊ±¼ä´Á£¨µ¥Î»ÊÇ ºÁÃë£©£¬µÚÒ»¸ötagµÄTimestamp×ÜÎª0</font>|
-TimestampExtended	|8	|Ê±¼ä´ÁµÄÀ©Õ¹×Ö¶Î£¬µ± Timestamp 3¸ö×Ö½Ú²»¹»Ê±£¬»áÆôÓÃÕâ¸ö×Ö¶Î£¬´ú±í¸ß8Î»|
-|StreamID	|24	|×ÜÊÇ0|
+|TagType|	8|	tagç±»å‹ <br> 8ï¼šaudio<br>9ï¼švideo<br>18ï¼šscript data<br>å…¶ä»–ï¼šä¿ç•™|
+|DataSize	|24|	message é•¿åº¦ï¼Œä»StreamIDåé¢åˆ°tagç»“æŸ|
+|Timestamp	|24	| <font color='red'>ç›¸å¯¹äºç¬¬ä¸€ä¸ªtagçš„æ—¶é—´æˆ³ï¼ˆå•ä½æ˜¯ æ¯«ç§’ï¼‰ï¼Œç¬¬ä¸€ä¸ªtagçš„Timestampæ€»ä¸º0</font>|
+TimestampExtended	|8	|æ—¶é—´æˆ³çš„æ‰©å±•å­—æ®µï¼Œå½“ Timestamp 3ä¸ªå­—èŠ‚ä¸å¤Ÿæ—¶ï¼Œä¼šå¯ç”¨è¿™ä¸ªå­—æ®µï¼Œä»£è¡¨é«˜8ä½|
+|StreamID	|24	|æ€»æ˜¯0|
 
 ```javascript
 
@@ -122,29 +122,29 @@ TimestampExtended	|8	|Ê±¼ä´ÁµÄÀ©Õ¹×Ö¶Î£¬µ± Timestamp 3¸ö×Ö½Ú²»¹»Ê±£¬»áÆôÓÃÕâ¸ö×Ö
 		};
 ```
 
-## Îå¡¢FLV Tag Body  
+## äº”ã€FLV Tag Body  
 
-¸ù¾İ tag typeµÄÖµ£¬tag body¿ÉÒÔ·ÖÎªAUDIODATA£¨tag typeÎª8£©£¬VIDEODATA£¨tag typeÎª9£©£¬SCRIPTDATAOBJECT£¨tag typeÎª18£©
+æ ¹æ® tag typeçš„å€¼ï¼Œtag bodyå¯ä»¥åˆ†ä¸ºAUDIODATAï¼ˆtag typeä¸º8ï¼‰ï¼ŒVIDEODATAï¼ˆtag typeä¸º9ï¼‰ï¼ŒSCRIPTDATAOBJECTï¼ˆtag typeä¸º18ï¼‰
 
-### 1¡¢AUDIODATA
+### 1ã€AUDIODATA
 
-AUDIODATA ³ĞÔØÒôÆµÊı¾İ£¬µÚÒ»¸ö×Ö½ÚÃèÊöÒôÆµµÄĞÅÏ¢£¬µÚ¶ş¸ö×Ö½Ú¿ªÊ¼ÎªÒôÆµÊı¾İ¡£
+AUDIODATA æ‰¿è½½éŸ³é¢‘æ•°æ®ï¼Œç¬¬ä¸€ä¸ªå­—èŠ‚æè¿°éŸ³é¢‘çš„ä¿¡æ¯ï¼Œç¬¬äºŒä¸ªå­—èŠ‚å¼€å§‹ä¸ºéŸ³é¢‘æ•°æ®ã€‚
 
-#### ¢Ù AUDIODATAµÄ½á¹¹ÈçÏÂ£º
+#### â‘  AUDIODATAçš„ç»“æ„å¦‚ä¸‹ï¼š
 
 
-|Ãû³Æ	|±ÈÌØÊı|	ÃèÊö|
+|åç§°	|æ¯”ç‰¹æ•°|	æè¿°|
 |:---:|:---:|:---:|
-|SoundFormat	|4	|ÒôÆµ±àÂë¸ñÊ½|
-|SoundRate	|2	|²ÉÑùÂÊ|
-|SoundSize	|1|	²ÉÑù¾«¶È£¬0±íÊ¾8-bit£¬1±íÊ¾16-bit|
-|SoundType	|1	|ÉùµÀÀàĞÍ£¬0±íÊ¾µ¥ÉùµÀ£¬1±íÊ¾Á¢ÌåÉù|
-|SoundData|	N*8	|ÒôÆµÊı¾İ|
+|SoundFormat	|4	|éŸ³é¢‘ç¼–ç æ ¼å¼|
+|SoundRate	|2	|é‡‡æ ·ç‡|
+|SoundSize	|1|	é‡‡æ ·ç²¾åº¦ï¼Œ0è¡¨ç¤º8-bitï¼Œ1è¡¨ç¤º16-bit|
+|SoundType	|1	|å£°é“ç±»å‹ï¼Œ0è¡¨ç¤ºå•å£°é“ï¼Œ1è¡¨ç¤ºç«‹ä½“å£°|
+|SoundData|	N*8	|éŸ³é¢‘æ•°æ®|
 
 
-#### ¢Ú ÒôÆµ±àÂë¸ñÊ½£º
+#### â‘¡ éŸ³é¢‘ç¼–ç æ ¼å¼ï¼š
 
-|IDÖµ|ÒôÆµ±àÂë|
+|IDå€¼|éŸ³é¢‘ç¼–ç |
 | :---:| :---:|
 |0|Linear PCM, platform endian|
 |1|ADPCM|
@@ -162,18 +162,18 @@ AUDIODATA ³ĞÔØÒôÆµÊı¾İ£¬µÚÒ»¸ö×Ö½ÚÃèÊöÒôÆµµÄĞÅÏ¢£¬µÚ¶ş¸ö×Ö½Ú¿ªÊ¼ÎªÒôÆµÊı¾İ¡£
 |14|MP3 8 kHz|
 |15|Device-specific sound|
 
-####  ¢Û µ±SoundFormat=10£¬¼´AACÒôÆµÊ±£¬SoundDataµÄµÚÒ»¸ö×Ö½ÚÎªAACPacketType¡£AACPacketTypeÎª0±íÊ¾Õâ¸öÒôÆµ°üÊÇAudioSpecificConfig£»·ñÔòÕâ¸öÒôÆµ°üÎªAACÖ¡Êı¾İ¡£
-AudioSpecificConfigµÄ½á¹¹£º
+####  â‘¢ å½“SoundFormat=10ï¼Œå³AACéŸ³é¢‘æ—¶ï¼ŒSoundDataçš„ç¬¬ä¸€ä¸ªå­—èŠ‚ä¸ºAACPacketTypeã€‚AACPacketTypeä¸º0è¡¨ç¤ºè¿™ä¸ªéŸ³é¢‘åŒ…æ˜¯AudioSpecificConfigï¼›å¦åˆ™è¿™ä¸ªéŸ³é¢‘åŒ…ä¸ºAACå¸§æ•°æ®ã€‚
+AudioSpecificConfigçš„ç»“æ„ï¼š
 
-|Ãû³Æ	|±ÈÌØÊı|	ÃèÊö|
+|åç§°	|æ¯”ç‰¹æ•°|	æè¿°|
 |:---:|:---:|:---:|
-|AudioObjectType|	5	|ÒôÆµ¶ÔÏóÀàĞÍ|
-|SamplingFrequencyIndex	|4|	²ÉÑùÂÊË÷ÒıÖµ£¬±ÈÈç4±íÊ¾44100|
-|ChannelConfiguration|	4	|ÉùµÀÅäÖÃ|
+|AudioObjectType|	5	|éŸ³é¢‘å¯¹è±¡ç±»å‹|
+|SamplingFrequencyIndex	|4|	é‡‡æ ·ç‡ç´¢å¼•å€¼ï¼Œæ¯”å¦‚4è¡¨ç¤º44100|
+|ChannelConfiguration|	4	|å£°é“é…ç½®|
 
-AudioObjectTypeµÄÈ¡Öµ£º
+AudioObjectTypeçš„å–å€¼ï¼š
 
-|Öµ|	ObjectType|
+|å€¼|	ObjectType|
 |:---:|:---:|
 |1	|AAC Main|
 |2	|AAC LC|
@@ -182,7 +182,7 @@ AudioObjectTypeµÄÈ¡Öµ£º
 |29	|AAC HEV2|
 
 
-SamplingFrequencyµÄÈ¡Öµ£º
+SamplingFrequencyçš„å–å€¼ï¼š
 
 |sampling frequency index	|frequency|
 |:---:|:---|
@@ -203,19 +203,19 @@ SamplingFrequencyµÄÈ¡Öµ£º
 |0xe	|reserved|
 |0xf	|escape value|
 
-SamplingFrequencyIndexÊÇSamplingFrequencyÊı×éµÄÒ»¸öË÷Òı¡£
+SamplingFrequencyIndexæ˜¯SamplingFrequencyæ•°ç»„çš„ä¸€ä¸ªç´¢å¼•ã€‚
 
-µ±SoundFormat=2£¬¼´MP3ÒôÆµÊ±£¬SoundData¾ÍÊÇMP3 RAWÊı¾İ
+å½“SoundFormat=2ï¼Œå³MP3éŸ³é¢‘æ—¶ï¼ŒSoundDataå°±æ˜¯MP3 RAWæ•°æ®
 
-### 2¡¢VideoData
+### 2ã€VideoData
 
-VIDEODATA TagµÚÒ»¸ö×Ö½ÚµÄ¸ß4Î»ÃèÊöÊÓÆµÖ¡µÄÀàĞÍ£¬µÍ4Î»ÃèÊöÊÓÆµ±àÂëÆ÷ID£¬VIDEODATA TagµÄ½á¹¹ÈçÏÂ£º
+VIDEODATA Tagç¬¬ä¸€ä¸ªå­—èŠ‚çš„é«˜4ä½æè¿°è§†é¢‘å¸§çš„ç±»å‹ï¼Œä½4ä½æè¿°è§†é¢‘ç¼–ç å™¨IDï¼ŒVIDEODATA Tagçš„ç»“æ„å¦‚ä¸‹ï¼š
 
-|Ãû³Æ	|±ÈÌØÊı	|ÃèÊö|
+|åç§°	|æ¯”ç‰¹æ•°	|æè¿°|
 |:---:|:---:|:---:|
-|FrameType	|4|	Ö¡ÀàĞÍ|
-|CodecID|	4	|ÊÓÆµ±àÂëID|
-|VideoData	|N*8	|ÊÓÆµÊı¾İ|
+|FrameType	|4|	å¸§ç±»å‹|
+|CodecID|	4	|è§†é¢‘ç¼–ç ID|
+|VideoData	|N*8	|è§†é¢‘æ•°æ®|
 
 ```javascript
 uint8_t *ptr = buffer;
@@ -226,9 +226,9 @@ uint8_t *ptr = buffer;
 
 
 
-FrameType£ºÊÓÆµÖ¡µÄÀàĞÍ¡£Ò»°ãkeyframeÊÇÖ¸IDRÖ¡£¬¶øinter frameÊÇÖ¸ÆÕÍ¨IÖ¡¡£
+FrameTypeï¼šè§†é¢‘å¸§çš„ç±»å‹ã€‚ä¸€èˆ¬keyframeæ˜¯æŒ‡IDRå¸§ï¼Œè€Œinter frameæ˜¯æŒ‡æ™®é€šIå¸§ã€‚
 
-|ÀàĞÍÖµ|	ÊÓÆµÖ¡|
+|ç±»å‹å€¼|	è§†é¢‘å¸§|
 |:---:|:---:|
 |1	|key frame (for AVC, a seekable frame)|
 |2	|inter frame (for AVC, a non-seekable frame)|
@@ -238,9 +238,9 @@ FrameType£ºÊÓÆµÖ¡µÄÀàĞÍ¡£Ò»°ãkeyframeÊÇÖ¸IDRÖ¡£¬¶øinter frameÊÇÖ¸ÆÕÍ¨IÖ¡¡£
 
 
 
-ÊÓÆµ±àÂëID£º
+è§†é¢‘ç¼–ç IDï¼š
 
-|IDÖµ	|ÊÓÆµ±àÂë|
+|IDå€¼	|è§†é¢‘ç¼–ç |
 |:---:|:---:|
 |2	|Sorenson H.263|
 |3|	Screen video|
@@ -250,24 +250,24 @@ FrameType£ºÊÓÆµÖ¡µÄÀàĞÍ¡£Ò»°ãkeyframeÊÇÖ¸IDRÖ¡£¬¶øinter frameÊÇÖ¸ÆÕÍ¨IÖ¡¡£
 |7	|AVC|
 
 
-<font color='red'>µ±CodecID Îª7Ê±£¬¼´ÎªAVCÊÓÆµ£¬µÚÒ»¸ö×Ö½ÚÎªAvcPacketType£¬µÚ¶şÈıËÄ¸ö×Ö½ÚÎªCompositionTime¡£µ±AvcPacketType=0£¬µÚ5¸ö×Ö½Ú¿ªÊ¼ÎªAVCDecoderConfigurationRecord£»·ñÔòVideoDataÎªAvc RawÊı¾İ¡£
-AVCDecoderConfigurationRecordµÄ½á¹¹£º
+<font color='red'>å½“CodecID ä¸º7æ—¶ï¼Œå³ä¸ºAVCè§†é¢‘ï¼Œç¬¬ä¸€ä¸ªå­—èŠ‚ä¸ºAvcPacketTypeï¼Œç¬¬äºŒä¸‰å››ä¸ªå­—èŠ‚ä¸ºCompositionTimeã€‚å½“AvcPacketType=0ï¼Œç¬¬5ä¸ªå­—èŠ‚å¼€å§‹ä¸ºAVCDecoderConfigurationRecordï¼›å¦åˆ™VideoDataä¸ºAvc Rawæ•°æ®ã€‚
+AVCDecoderConfigurationRecordçš„ç»“æ„ï¼š
 
-|Ãû³Æ|	±ÈÌØÊı	|ÃèÊö|
+|åç§°|	æ¯”ç‰¹æ•°	|æè¿°|
 |:---:|:---:|:---:|
-|configurationVersion	|8	|°æ±¾ºÅ£¬×ÜÊÇ1|
+|configurationVersion	|8	|ç‰ˆæœ¬å·ï¼Œæ€»æ˜¯1|
 |AVCProfileIndication|	8	|sps[1]|
 |profile_compatibility	|8	|sps[2]|
 |AVCLevelIndication|	8	|sps[3]|
 
-- configurationVersion,AVCProfileIndication,profile_compatibility,AVCLevelIndication£º¶¼ÊÇÒ»¸ö×Ö½Ú£¬¾ßÌåµÄÄÚÈİÓÉ½âÂëÆ÷È¥Àí½â¡£
-- lengthSizeMinusOne£ºunit_length³¤¶ÈËùÕ¼µÄ×Ö½ÚÊı¼õ1£¬Ò²¼´lengthSizeMinusOneµÄÖµ+1²ÅÊÇunit_lengthËùÕ¼ÓÃµÄ×Ö½ÚÊı¡£
-- numOfSequenceParameterSets£ºspsµÄ¸öÊı
-- sequenceParameterSetLength£ºspsÄÚÈİµÄ³¤¶È
-- sequenceParameterSetNALUnit£ºspsµÄÄÚÈİ
-- numOfPictureParameterSets£ºppsµÄ¸öÊı
-- pictureParameterSetLength£ºppsÄÚÈİµÄ³¤¶È
-- pictureParameterSetNALUnit£ºppsµÄÄÚÈİ
+- configurationVersion,AVCProfileIndication,profile_compatibility,AVCLevelIndicationï¼šéƒ½æ˜¯ä¸€ä¸ªå­—èŠ‚ï¼Œå…·ä½“çš„å†…å®¹ç”±è§£ç å™¨å»ç†è§£ã€‚
+- lengthSizeMinusOneï¼šunit_lengthé•¿åº¦æ‰€å çš„å­—èŠ‚æ•°å‡1ï¼Œä¹Ÿå³lengthSizeMinusOneçš„å€¼+1æ‰æ˜¯unit_lengthæ‰€å ç”¨çš„å­—èŠ‚æ•°ã€‚
+- numOfSequenceParameterSetsï¼šspsçš„ä¸ªæ•°
+- sequenceParameterSetLengthï¼šspså†…å®¹çš„é•¿åº¦
+- sequenceParameterSetNALUnitï¼šspsçš„å†…å®¹
+- numOfPictureParameterSetsï¼šppsçš„ä¸ªæ•°
+- pictureParameterSetLengthï¼šppså†…å®¹çš„é•¿åº¦
+- pictureParameterSetNALUnitï¼šppsçš„å†…å®¹
 
 ```javascript
 
@@ -275,18 +275,18 @@ std::string extra_data;
 	{
 
 		/*
-		configurationVersion	8	°æ±¾ºÅ£¬×ÜÊÇ1
+		configurationVersion	8	ç‰ˆæœ¬å·ï¼Œæ€»æ˜¯1
 		AVCProfileIndication	8	sps[1]
 		profile_compatibility	8	sps[2]
 		AVCLevelIndication	8	sps[3]
-		configurationVersion,AVCProfileIndication,profile_compatibility,AVCLevelIndication£º¶¼ÊÇÒ»¸ö×Ö½Ú£¬¾ßÌåµÄÄÚÈİÓÉ½âÂëÆ÷È¥Àí½â¡£
-		lengthSizeMinusOne£ºunit_length³¤¶ÈËùÕ¼µÄ×Ö½ÚÊı¼õ1£¬Ò²¼´lengthSizeMinusOneµÄÖµ+1²ÅÊÇunit_lengthËùÕ¼ÓÃµÄ×Ö½ÚÊı¡£
-		numOfSequenceParameterSets£ºspsµÄ¸öÊı
-		sequenceParameterSetLength£ºspsÄÚÈİµÄ³¤¶È
-		sequenceParameterSetNALUnit£ºspsµÄÄÚÈİ
-		numOfPictureParameterSets£ºppsµÄ¸öÊı
-		pictureParameterSetLength£ºppsÄÚÈİµÄ³¤¶È
-		pictureParameterSetNALUnit£ºppsµÄÄÚÈİ
+		configurationVersion,AVCProfileIndication,profile_compatibility,AVCLevelIndicationï¼šéƒ½æ˜¯ä¸€ä¸ªå­—èŠ‚ï¼Œå…·ä½“çš„å†…å®¹ç”±è§£ç å™¨å»ç†è§£ã€‚
+		lengthSizeMinusOneï¼šunit_lengthé•¿åº¦æ‰€å çš„å­—èŠ‚æ•°å‡1ï¼Œä¹Ÿå³lengthSizeMinusOneçš„å€¼+1æ‰æ˜¯unit_lengthæ‰€å ç”¨çš„å­—èŠ‚æ•°ã€‚
+		numOfSequenceParameterSetsï¼šspsçš„ä¸ªæ•°
+		sequenceParameterSetLengthï¼šspså†…å®¹çš„é•¿åº¦
+		sequenceParameterSetNALUnitï¼šspsçš„å†…å®¹
+		numOfPictureParameterSetsï¼šppsçš„ä¸ªæ•°
+		pictureParameterSetLengthï¼šppså†…å®¹çš„é•¿åº¦
+		pictureParameterSetNALUnitï¼šppsçš„å†…å®¹
 		*/
 		// AVCDecoderConfigurationRecord start
 		extra_data.push_back(1); // version
@@ -323,39 +323,39 @@ std::string extra_data;
 	WriteFlvTag(libflv::kFlvMsgTypeVideo, buffer, ptr - buffer, 0);
 ```
 
-µ±VideoDataÎªAVC RAWÊ±£¬AVC RAWµÄ½á¹¹ÊÇavccµÄ
+å½“VideoDataä¸ºAVC RAWæ—¶ï¼ŒAVC RAWçš„ç»“æ„æ˜¯avccçš„
 
-#### 3¡¢  Script OnMeta £¨Êµ¼Ê½âÂëÄÃspsºÍppsÖĞĞÅÏ¢½âÎö½âÂëµÄ£¬ ËùÒÔ¸Ã×Ö¶ÎÃ»ÓĞÉ¶×÷ÓÃ)
+#### 3ã€  Script OnMeta ï¼ˆå®é™…è§£ç æ‹¿spså’Œppsä¸­ä¿¡æ¯è§£æè§£ç çš„ï¼Œ æ‰€ä»¥è¯¥å­—æ®µæ²¡æœ‰å•¥ä½œç”¨)
 
-Script Data TagsÍ¨³£ÓÃÀ´´æ·Å¸úFLVÖĞÒôÊÓÆµÏà¹ØµÄÔªÊı¾İĞÅÏ¢£¨onMetaData£©£¬±ÈÈçÊ±³¤¡¢³¤¶È¡¢¿í¶ÈµÈ¡£ËüµÄ¶¨ÒåÏà¶Ô¸´ÔÓĞ©£¬²ÉÓÃAMF£¨Action Message Format£©·â×°ÁËÒ»ÏµÁĞÊı¾İÀàĞÍ£¬±ÈÈç×Ö·û´®¡¢ÊıÖµ¡¢Êı×éµÈ¡£
+Script Data Tagsé€šå¸¸ç”¨æ¥å­˜æ”¾è·ŸFLVä¸­éŸ³è§†é¢‘ç›¸å…³çš„å…ƒæ•°æ®ä¿¡æ¯ï¼ˆonMetaDataï¼‰ï¼Œæ¯”å¦‚æ—¶é•¿ã€é•¿åº¦ã€å®½åº¦ç­‰ã€‚å®ƒçš„å®šä¹‰ç›¸å¯¹å¤æ‚äº›ï¼Œé‡‡ç”¨AMFï¼ˆAction Message Formatï¼‰å°è£…äº†ä¸€ç³»åˆ—æ•°æ®ç±»å‹ï¼Œæ¯”å¦‚å­—ç¬¦ä¸²ã€æ•°å€¼ã€æ•°ç»„ç­‰ã€‚
 
-onMetaDataÖĞ°üº¬ÁËÒôÊÓÆµÏà¹ØµÄÔªÊı¾İ£¬·â×°ÔÚScript Data TagÖĞ£¬Ëü°üº¬ÁËÁ½¸öAMF¡£
+onMetaDataä¸­åŒ…å«äº†éŸ³è§†é¢‘ç›¸å…³çš„å…ƒæ•°æ®ï¼Œå°è£…åœ¨Script Data Tagä¸­ï¼Œå®ƒåŒ…å«äº†ä¸¤ä¸ªAMFã€‚
 
-µÚÒ»¸öAMFÊÇ¹Ì¶¨µÄÖµ£º
+ç¬¬ä¸€ä¸ªAMFæ˜¯å›ºå®šçš„å€¼ï¼š
 
 ```
 0x02 0x000A 0x6F 0x6E 0x4D 0x65 0x74 0x61 0x44 0x61 0x74 0x61
 ```
 
-- µÚ1¸ö×Ö½Ú£º0x02£¬±íÊ¾×Ö·û´®ÀàĞÍ
-- µÚ2-3¸ö×Ö½Ú£ºUI16ÀàĞÍ£¬ÖµÎª0x000A£¬±íÊ¾×Ö·û´®µÄ³¤¶ÈÎª10£¨onMetaDataµÄ³¤¶È£©£»
-- µÚ4-13¸ö×Ö½Ú£º×Ö·û´®onMetaData¶ÔÓ¦µÄ16½øÖÆÊı×Ö£¨0x6F 0x6E 0x4D 0x65 0x74 0x61 0x44 0x61 0x74 0x61£©£»
+- ç¬¬1ä¸ªå­—èŠ‚ï¼š0x02ï¼Œè¡¨ç¤ºå­—ç¬¦ä¸²ç±»å‹
+- ç¬¬2-3ä¸ªå­—èŠ‚ï¼šUI16ç±»å‹ï¼Œå€¼ä¸º0x000Aï¼Œè¡¨ç¤ºå­—ç¬¦ä¸²çš„é•¿åº¦ä¸º10ï¼ˆonMetaDataçš„é•¿åº¦ï¼‰ï¼›
+- ç¬¬4-13ä¸ªå­—èŠ‚ï¼šå­—ç¬¦ä¸²onMetaDataå¯¹åº”çš„16è¿›åˆ¶æ•°å­—ï¼ˆ0x6F 0x6E 0x4D 0x65 0x74 0x61 0x44 0x61 0x74 0x61ï¼‰ï¼›
 
-µÚ¶ş¸öAMFÔòÊÇ¼üÖµ¶ÔÃèÊöµÄÁ÷Ã½ÌåÊôĞÔ£¬Ã¿¸öÊµÏÖÕâĞ©ÊôĞÔ¶¼¿ÉÄÜ²»Ò»Ñù£º
+ç¬¬äºŒä¸ªAMFåˆ™æ˜¯é”®å€¼å¯¹æè¿°çš„æµåª’ä½“å±æ€§ï¼Œæ¯ä¸ªå®ç°è¿™äº›å±æ€§éƒ½å¯èƒ½ä¸ä¸€æ ·ï¼š
 
-|×Ö¶Î|	×Ö¶ÎÀàĞÍ	|×Ö¶Îº¬Òå|
+|å­—æ®µ|	å­—æ®µç±»å‹	|å­—æ®µå«ä¹‰|
 |:---:|:---|:---:|
-|duration	|DOUBLE|	ÎÄ¼şµÄÊ±³¤|
-|width|	DOUBLE|	ÊÓÆµ¿í¶È£¨px£©|
-|height	|DOUBLE|	ÊÓÆµ¸ß¶È£¨px£©|
-|videodatarate|	DOUBLE	|ÊÓÆµ±ÈÌØÂÊ£¨kb/s£©|
-|framerate	|DOUBLE	|ÊÓÆµÖ¡ÂÊ£¨Ö¡/s£©|
-|videocodecid	|DOUBLE|	ÊÓÆµ±à½âÂëÆ÷ID£¨²Î¿¼Video Tag£©|
-|audiosamplerate	|DOUBLE|	ÒôÆµ²ÉÑùÂÊ|
-|audiosamplesize|	DOUBLE|	ÒôÆµ²ÉÑù¾«¶È£¨²Î¿¼Audio Tag£©|
-|stereo	|BOOL|	ÊÇ·ñÁ¢ÌåÉù|
-|audiocodecid	|DOUBLE	|ÒôÆµ±à½âÂëÆ÷ID£¨²Î¿¼Audio Tag£©|
-|filesize	|DOUBLE	|ÎÄ¼ş×ÜµÃ´óĞ¡£¨×Ö½Ú£©|
+|duration	|DOUBLE|	æ–‡ä»¶çš„æ—¶é•¿|
+|width|	DOUBLE|	è§†é¢‘å®½åº¦ï¼ˆpxï¼‰|
+|height	|DOUBLE|	è§†é¢‘é«˜åº¦ï¼ˆpxï¼‰|
+|videodatarate|	DOUBLE	|è§†é¢‘æ¯”ç‰¹ç‡ï¼ˆkb/sï¼‰|
+|framerate	|DOUBLE	|è§†é¢‘å¸§ç‡ï¼ˆå¸§/sï¼‰|
+|videocodecid	|DOUBLE|	è§†é¢‘ç¼–è§£ç å™¨IDï¼ˆå‚è€ƒVideo Tagï¼‰|
+|audiosamplerate	|DOUBLE|	éŸ³é¢‘é‡‡æ ·ç‡|
+|audiosamplesize|	DOUBLE|	éŸ³é¢‘é‡‡æ ·ç²¾åº¦ï¼ˆå‚è€ƒAudio Tagï¼‰|
+|stereo	|BOOL|	æ˜¯å¦ç«‹ä½“å£°|
+|audiocodecid	|DOUBLE	|éŸ³é¢‘ç¼–è§£ç å™¨IDï¼ˆå‚è€ƒAudio Tagï¼‰|
+|filesize	|DOUBLE	|æ–‡ä»¶æ€»å¾—å¤§å°ï¼ˆå­—èŠ‚ï¼‰|
 
 ```javascript 
 
@@ -401,10 +401,10 @@ onMetaDataÖĞ°üº¬ÁËÒôÊÓÆµÏà¹ØµÄÔªÊı¾İ£¬·â×°ÔÚScript Data TagÖĞ£¬Ëü°üº¬ÁËÁ½¸öAMF¡£
 ```
 
 
-½âÂëĞ§¹ûÍ¼
-![ÔÚÕâÀï²åÈëÍ¼Æ¬ÃèÊö](https://i-blog.csdnimg.cn/direct/869bf79ce5574bdaaad5829a55754298.png)
+è§£ç æ•ˆæœå›¾
+![åœ¨è¿™é‡Œæ’å…¥å›¾ç‰‡æè¿°](https://i-blog.csdnimg.cn/direct/869bf79ce5574bdaaad5829a55754298.png)
 
 
-# ×Ü½á 
+# æ€»ç»“ 
 
-[libflv Ô´ÂëµØÖ·£ºhttps://github.com/chensongpoixs/libmedia_transfer_protocol/tree/master/libflv](https://github.com/chensongpoixs/libmedia_transfer_protocol/tree/master/libflv)
+[libflv æºç åœ°å€ï¼šhttps://github.com/chensongpoixs/libmedia_transfer_protocol/tree/master/libflv](https://github.com/chensongpoixs/libmedia_transfer_protocol/tree/master/libflv)
