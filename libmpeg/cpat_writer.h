@@ -1,4 +1,15 @@
-﻿/***********************************************************************************************
+﻿/******************************************************************************
+ *  Copyright (c) 2025 The CRTC project authors . All Rights Reserved.
+ *
+ *  Please visit https://chensongpoixs.github.io for detail
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
+ ******************************************************************************/
+/***********************************************************************************************
 created: 		2025-05-02
 
 author:			chensong
@@ -49,33 +60,221 @@ namespace libmedia_transfer_protocol
 {
 	namespace libmpeg
 	{
+		/**
+		*  @author chensong
+		*  @date 2025-05-02
+		*  @brief PAT写入器类（PAT Writer）
+		*  
+		*  PatWriter类用于写入MPEG-TS流中的PAT（Program Association Table，节目关联表）。
+		*  PAT表是MPEG-TS流中最重要的PSI表之一，它列出了传输流中所有节目的映射关系。
+		*  
+		*  PAT表说明：
+		*  - PAT表固定使用PID 0x0000和table_id 0x00
+		*  - PAT表用于列出传输流中所有节目的映射关系
+		*  - 每个节目通过program_number和program_map_PID进行关联
+		*  - program_map_PID用于定位对应的PMT表
+		*  
+		*  PAT表Section数据结构（PAT Section Data Structure）：
+		*  
+		*    0                   1                   2                   3
+		*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  table_id=0x00 | section_syntax=1 | reserved=0 | section_length|
+		*   |  (8 bits)       |  (1 bit)         |  (1 bit)   |  (12 bits)    |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  transport_stream_id                                           |
+		*   |  (16 bits)                                                      |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  reserved | version | current_next | section_number          |
+		*   |  (2 bits) | (5 bits)|  (1 bit)     |  (8 bits)               |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  last_section_number                                           |
+		*   |  (8 bits)                                                      |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   :                        Program List                            :
+		*   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+		*   |  | program_number (16 bits)                                   | |
+		*   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+		*   |  | reserved(3) | program_map_PID (13 bits)                    | |
+		*   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+		*   :  ... more programs ...                                        :
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |                        CRC32 (32 bits)                         |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*  
+		*  节目条目格式（Program Entry Format）：
+		*  
+		*    0                   1                   2                   3
+		*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  program_number                                               |
+		*   |  (16 bits)                                                     |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  reserved(3) | program_map_PID                                |
+		*   |  (3 bits)    |  (13 bits)                                      |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*  
+		*  @note PatWriter固定使用PID 0x0000和table_id 0x00
+		*  @note PAT表用于节目映射，是定位PMT表的关键
+		*  
+		*  使用示例：
+		*  @code
+		*  PatWriter pat_writer;
+		*  pat_writer.WritePat(stream_writer);
+		*  @endcode
+		*/
 		class PatWriter : public PSIWriter
 		{
 		public:
+			/**
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief 构造函数（Constructor）
+			*  
+			*  该构造函数用于创建PatWriter实例。会设置PAT表的固定PID和table_id。
+			*  
+			*  初始化说明：
+			*  - pid_: 设置为0x0000（PAT表固定PID）
+			*  - table_id_: 设置为0x00（PAT表固定table_id）
+			*  
+			*  @note PAT表固定使用PID 0x0000和table_id 0x00
+			*/
 			PatWriter() 
 				: PSIWriter()
 			{
 				pid_ = 0X0000; //固定 0x0000
 				table_id_ = 0X00; // table_id 固定 0x00
 			}
+
+			/**
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief 析构函数（Destructor）
+			*  
+			*  该析构函数用于清理PatWriter实例。使用默认析构函数，自动释放成员变量。
+			*  
+			*  @note 使用默认析构函数，自动释放资源
+			*/
 			/*virtual*/ ~PatWriter() = default;
 
 		public:
 
-			/**
-			*  Pat 
-			* @param w: 写入类 
-			* return 返回值
-			*/
-			void WritePat(StreamWriter * w);
+		/**
+		*  @author chensong
+		*  @date 2025-04-09
+		*  @brief 写入PAT表（Write PAT Table）
+		*  
+		*  PAT表是MPEG-TS流中最重要的PSI表之一，它列出了传输流中所有节目的映射关系。
+		*  每个节目通过program_number和program_map_PID进行关联，用于定位对应的PMT表。
+		*  
+		*  PAT表数据格式（PAT Table Data Format）：
+		*  
+		*    0                   1                   2                   3
+		*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  transport_stream_id                                           |
+		*   |  (16 bits)                                                      |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  program_number                                               |
+		*   |  (16 bits)                                                     |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  reserved(3) | program_map_PID                                |
+		*   |  (3 bits=111)|  (13 bits)                                      |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*  
+		*  写入的数据格式：
+		*  - transport_stream_id_ (16位，大端序)
+		*  - program_number_ (16位，大端序)
+		*  - reserved (3位=111) + program_map_PID (13位)，共16位，格式为 0xE000 | pmt_pid_（大端序）
+		*  
+		*  @param w StreamWriter指针，用于写入TS包数据
+		*  @note 该方法会将PAT表数据封装为PSI Section，并调用基类WriteSection方法
+		*        写入到TS流中。PAT表固定使用PID 0x0000和table_id 0x00。
+		*  @note program_number为0x0000时，program_map_PID表示network_PID
+		*  
+		*  使用示例：
+		*  @code
+		*  PatWriter pat_writer;
+		*  pat_writer.WritePat(stream_writer);
+		*  @endcode
+		*/
+		void WritePat(StreamWriter * w);
 
 
 		private:
 
-
-
+			/**
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief 节目号（Program Number）
+			*  
+			*  该成员变量用于存储节目的编号。节目号用于标识传输流中的不同节目。
+			*  如果program_number为0x0000，则表示这是一个网络PID条目。
+			*  
+			*  节目号格式（Program Number Format）：
+			*  
+			*    0                   1                   2                   3
+			*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  program_number                                               |
+			*   |  (16 bits)                                                     |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  0x0000: 网络PID条目                                          |
+			*   |  其他值: 节目号                                                |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*  
+			*  @note 初始值为0x0001，表示节目号为1
+			*  @note program_number为0x0000时，表示network_PID条目
+			*/
 			uint16_t  program_number_{0X0001};
+
+			/**
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief PMT表PID（Program Map Table PID）
+			*  
+			*  该成员变量用于存储PMT表所在TS包的PID。program_map_PID用于定位
+			*  对应节目的PMT表，PMT表包含该节目的所有原始流（音频、视频等）信息。
+			*  
+			*  PMT PID格式（PMT PID Format）：
+			*  
+			*    0                   1                   2                   3
+			*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  reserved(3) | program_map_PID                                |
+			*   |  (3 bits=111)|  (13 bits)                                      |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  格式: 0xE000 | pmt_pid_                                      |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*  
+			*  @note 初始值为0x1001，表示PMT表的PID为0x1001
+			*  @note program_map_PID用于定位对应节目的PMT表
+			*  @note 如果program_number为0x0000，则program_map_PID表示network_PID
+			*/
 			uint16_t  pmt_pid_{ 0X1001 }; // program_map_PID 
+
+			/**
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief 传输流ID（Transport Stream ID）
+			*  
+			*  该成员变量用于存储传输流的ID。transport_stream_id用于标识传输流，
+			*  在一个网络中可以唯一标识一个传输流。
+			*  
+			*  传输流ID格式（Transport Stream ID Format）：
+			*  
+			*    0                   1                   2                   3
+			*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  transport_stream_id                                           |
+			*   |  (16 bits)                                                      |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  用于唯一标识传输流                                            |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*  
+			*  @note 初始值为0x0001，表示传输流ID为1
+			*  @note transport_stream_id在table_id_extension字段中使用
+			*/
 			uint16_t  transport_stream_id_{ 0X0001 };
 		};
 	}

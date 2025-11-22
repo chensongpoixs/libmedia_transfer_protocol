@@ -29,6 +29,9 @@
 #include "libmedia_transfer_protocol/libnetwork/tcp_server.h"
 #include "libmedia_transfer_protocol/libnetwork/udp_server.h"
 #include <unordered_map>
+#include <queue>
+#include <mutex>
+#include "rtc_base/copy_on_write_buffer.h"
 
 
 
@@ -66,7 +69,13 @@ namespace  libmedia_transfer_protocol {
 			void AyncSend(const uint8_t *data, int32_t  size);
 		
 			void AsyncSend(rtc::CopyOnWriteBuffer &&data);
+			
+			// 同步发送方法（TCP/UDP 通用）
+			void Send(const rtc::CopyOnWriteBuffer& data);
+			void Send(const uint8_t* data, int32_t size);
+			
 			rtc::Socket*   GetSocket() const { return socket_; }
+			const rtc::SocketAddress& GetRemoteAddress() const { return remote_address_; }
 
 
 			sigslot::signal1<Connection*> SignalOnClose;
@@ -102,6 +111,11 @@ namespace  libmedia_transfer_protocol {
 			void OnClose(rtc::Socket* socket, int ret);
 			void OnRead(rtc::Socket* socket);
 			void OnWrite(rtc::Socket* socket);
+			
+			// TCP 发送缓冲区管理
+			void TrySendPendingData();
+			void AddToSendQueue(const rtc::CopyOnWriteBuffer& data);
+			
 		private:
 			rtc::Thread        *   network_thread_;
 			//UdpSession *        udp_session_;
@@ -113,6 +127,12 @@ namespace  libmedia_transfer_protocol {
 			int32_t  recv_buffer_size_ = 0;
 			std::atomic_bool         available_write;
 			ProtocolType        protocol_type_ = ProtocolType::ProtocolUdp;
+
+			// TCP 发送队列（当 socket 不可写时缓冲数据）
+			std::queue<rtc::CopyOnWriteBuffer> send_queue_;
+			std::mutex send_queue_lock_;
+			static constexpr size_t kMaxSendQueueSize = 1024 * 1024 * 10;  // 最大发送队列大小 10MB
+			size_t send_queue_total_size_ = 0;
 
 			std::unordered_map<uint32_t, std::shared_ptr<void>>     contexts_;
 		};

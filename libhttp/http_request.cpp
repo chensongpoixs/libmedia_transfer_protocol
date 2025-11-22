@@ -182,25 +182,72 @@ namespace  libmedia_transfer_protocol {
 			}
 			return string_empty;
 		}
+		const std::string &HttpRequest::GetQueryParam(const std::string &key) const
+		{
+			return GetParameter(key);
+		}
 		const std::string &HttpRequest::Query() const
 		{
 			return query_;
 		}
 		void HttpRequest::ParseParameters()
 		{
+			// 清空已有参数
+			parameters_.clear();
+			
+			if (query_.empty())
+			{
+				return;
+			}
+			
 			std::vector<std::string> list;
 			rtc::split(query_, '&', &list);
 			 
 			for (auto const &l : list)
 			{
+				if (l.empty())
+				{
+					continue;
+				}
+				
 				auto pos = l.find('=');
 				if (pos != std::string::npos)
 				{
 					std::string k = l.substr(0, pos);
 					std::string v = l.substr(pos + 1);
-					k = HttpUtils::Trim(k);
-					v = HttpUtils::Trim(v);
+					
+					// 去除首尾空白
+					HttpUtils::Trim(k);
+					HttpUtils::Trim(v);
+					
+					// URL 解码参数名和参数值
+					if (HttpUtils::NeedUrlDecoding(k))
+					{
+						k = HttpUtils::UrlDecode(k);
+					}
+					if (HttpUtils::NeedUrlDecoding(v))
+					{
+						v = HttpUtils::UrlDecode(v);
+					}
+					
+					if (!k.empty())
+					{
 					SetParameter(std::move(k), std::move(v));
+					}
+				}
+				else
+				{
+					// 没有等号的参数（key 没有值）
+					std::string k = l;
+					HttpUtils::Trim(k);
+					if (HttpUtils::NeedUrlDecoding(k))
+					{
+						k = HttpUtils::UrlDecode(k);
+					}
+					if (!k.empty())
+					{
+						SetParameter(std::move(k), std::string());  // 空值
+					}
 				}
 			}
 		}
