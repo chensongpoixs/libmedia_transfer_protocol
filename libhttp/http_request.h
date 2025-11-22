@@ -65,6 +65,7 @@ namespace  libmedia_transfer_protocol {
 			void SetParameter(const std::string &key, const std::string &value);
 			void SetParameter(std::string &&key, std::string &&value);
 			const std::string &GetParameter(const std::string &key) const;
+			const std::string &GetQueryParam(const std::string &key) const;
 			const std::string &Query() const;
 
 			void SetMethod(const std::string &method);

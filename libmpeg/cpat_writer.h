@@ -73,12 +73,37 @@ namespace libmedia_transfer_protocol
 
 		public:
 
-			/**
-			*  Pat 
-			* @param w: 写入类 
-			* return 返回值
-			*/
-			void WritePat(StreamWriter * w);
+		/**
+		*  @author chensong
+		*  @date 2025-04-09
+		*  @brief 写入PAT表（Program Association Table，节目关联表）
+		*  
+		*  PAT表是MPEG-TS流中最重要的PSI表之一，它列出了传输流中所有节目的映射关系。
+		*  每个节目通过program_number和program_map_PID进行关联，用于定位对应的PMT表。
+		*  
+		*  PAT表Section数据结构：
+		*  - transport_stream_id (16位): 传输流ID，用于标识传输流
+		*  - section_length (12位): 段长度
+		*  - program_list:
+		*      - program_number (16位): 节目号，0x0000表示网络PID，其他值表示节目号
+		*      - reserved (3位): 保留位，固定为111
+		*      - program_map_PID (13位): PMT表所在TS包的PID，当program_number=0时表示network_PID
+		*  
+		*  写入的数据格式：
+		*  - program_number_ (16位，大端序)
+		*  - reserved (3位) + program_map_PID (13位)，共16位，格式为 0xE000 | pmt_pid_（大端序）
+		*  
+		*  @param w StreamWriter指针，用于写入TS包数据
+		*  @note 该方法会将PAT表数据封装为PSI Section，并调用基类WriteSection方法
+		*        写入到TS流中。PAT表固定使用PID 0x0000和table_id 0x00。
+		*  
+		*  使用示例：
+		*  @code
+		*  PatWriter pat_writer;
+		*  pat_writer.WritePat(stream_writer);
+		*  @endcode
+		*/
+		void WritePat(StreamWriter * w);
 
 
 		private:
