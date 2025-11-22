@@ -60,15 +60,176 @@ namespace libmedia_transfer_protocol
 {
 	namespace libmpeg
 	{
+		/**
+		*  @author chensong
+		*  @date 2025-05-02
+		*  @brief 节目信息结构体（Program Information Structure）
+		*  
+		*  ProgramInfo结构体用于存储节目的原始流信息，包括流类型和PID。
+		*  每个原始流（音频、视频等）都有一个ProgramInfo条目。
+		*  
+		*  节目信息数据结构（Program Info Data Structure）：
+		*  
+		*    0                   1                   2                   3
+		*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  stream_type      |  reserved(3) | elementary_PID             |
+		*   |  (8 bits)         |  (3 bits)    |  (13 bits)                  |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  ES_info_length (12 bits)                                      |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   :                        ES_info (variable)                      :
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*  
+		*  流类型说明（Stream Type Description）：
+		*  - 0x01: MPEG-1 Video
+		*  - 0x02: MPEG-2 Video
+		*  - 0x03: MPEG-1 Audio
+		*  - 0x04: MPEG-2 Audio
+		*  - 0x0F: AAC Audio
+		*  - 0x1B: H.264 Video (AVC)
+		*  - 0x24: H.265 Video (HEVC)
+		*  
+		*  @note 流类型标识了原始流的编码格式
+		*  @note elementary_PID用于标识原始流的TS包PID
+		*/
 		struct ProgramInfo
 		{
+			/**
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief 流类型（Stream Type）
+			*  
+			*  该成员变量用于存储原始流的类型。流类型标识了原始流的编码格式，
+			*  如H264视频、AAC音频等。
+			*  
+			*  @note 8位值，范围0x00-0xFF
+			*  @note 常用值：0x1B (H.264), 0x0F (AAC), 0x24 (H.265)
+			*/
 			uint8_t   stream_type; // 8bits
+
+			/**
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief 原始流PID（Elementary Stream PID）
+			*  
+			*  该成员变量用于存储原始流的PID。elementary_PID用于标识
+			*  该原始流的TS包PID，接收端通过此PID过滤对应的TS包。
+			*  
+			*  @note 13位值，范围0x0000-0x1FFF
+			*  @note 用于标识原始流的TS包PID
+			*/
 			uint16_t   elementary_pid; // 13bits;
 		};
+
+		/**
+		*  @author chensong
+		*  @date 2025-05-02
+		*  @brief 节目信息指针类型定义（Program Info Pointer Type Definition）
+		*  
+		该类型定义用于简化ProgramInfo的共享指针使用。
+		*/
 		using ProgramInfoPtr = std::shared_ptr< ProgramInfo>;
+
+		/**
+		*  @author chensong
+		*  @date 2025-05-02
+		*  @brief PMT写入器类（PMT Writer）
+		*  
+		*  PmtWriter类用于写入MPEG-TS流中的PMT（Program Map Table，节目映射表）。
+		*  PMT表列出了节目的所有原始流（音频、视频等）信息，包括流类型和PID。
+		*  
+		*  PMT表说明：
+		*  - PMT表固定使用table_id 0x02
+		*  - PMT表的PID由PAT表指定（通常在构造函数中设置为0x1001）
+		*  - PMT表用于列出节目的所有原始流信息
+		*  - 每个原始流（音频、视频等）都有一个ProgramInfo条目
+		*  
+		*  PMT表Section数据结构（PMT Section Data Structure）：
+		*  
+		*    0                   1                   2                   3
+		*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  table_id=0x02 | section_syntax=1 | reserved=0 | section_length|
+		*   |  (8 bits)       |  (1 bit)         |  (1 bit)   |  (12 bits)    |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  program_number                                               |
+		*   |  (16 bits)                                                      |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  reserved | version | current_next | section_number          |
+		*   |  (2 bits) | (5 bits)|  (1 bit)     |  (8 bits)               |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  last_section_number                                           |
+		*   |  (8 bits)                                                      |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  reserved(3) | PCR_PID (13 bits)                              |
+		*   |  (3 bits=111)|  (13 bits)                                      |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  reserved(4) | program_info_length (12 bits)                  |
+		*   |  (4 bits=1111)|  (12 bits)                                     |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   :                        Program Info Descriptors (variable)    :
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   :                        Elementary Stream List                 :
+		*   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+		*   |  | stream_type (8 bits)                                       | |
+		*   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+		*   |  | reserved(3) | elementary_PID (13 bits)                     | |
+		*   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+		*   |  | reserved(4) | ES_info_length (12 bits)                     | |
+		*   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+		*   |  :  ES_info descriptors (variable)                            : |
+		*   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+		*   :  ... more elementary streams ...                              :
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |                        CRC32 (32 bits)                         |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*  
+		*  原始流条目格式（Elementary Stream Entry Format）：
+		*  
+		*    0                   1                   2                   3
+		*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  stream_type      |  reserved(3) | elementary_PID             |
+		*   |  (8 bits)         |  (3 bits=111)|  (13 bits)                  |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   |  reserved(4) | ES_info_length (12 bits)                       |
+		*   |  (4 bits=1111)|  (12 bits)                                      |
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*   :                        ES_info descriptors (variable)         :
+		*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+		*  
+		*  @note PmtWriter固定使用table_id 0x02，PID由PAT表指定（默认0x1001）
+		*  @note PMT表用于列出节目的所有原始流（音频、视频等）信息
+		*  @note 每个原始流都有一个ProgramInfo条目，包含流类型和PID
+		*  
+		*  使用示例：
+		*  @code
+		*  PmtWriter pmt_writer;
+		*  auto video_info = std::make_shared<ProgramInfo>();
+		*  video_info->stream_type = 0x1B;  // H.264
+		*  video_info->elementary_pid = 0x1011;
+		*  pmt_writer.AddProgramInfo(video_info);
+		*  pmt_writer.WritePmt(stream_writer);
+		*  @endcode
+		*/
 		class PmtWriter : public PSIWriter
 		{
 		public:
+			/**
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief 构造函数（Constructor）
+			*  
+			*  该构造函数用于创建PmtWriter实例。会设置PMT表的固定table_id和默认PID。
+			*  
+			*  初始化说明：
+			*  - table_id_: 设置为0x02（PMT表固定table_id）
+			*  - pid_: 设置为0x1001（默认PMT表PID，可由PAT表指定）
+			*  
+			*  @note PMT表固定使用table_id 0x02
+			*  @note PMT表的PID由PAT表指定，默认值为0x1001
+			*/
 			PmtWriter()
 				: PSIWriter()
 			{
@@ -76,29 +237,197 @@ namespace libmedia_transfer_protocol
 				pid_ = 0X1001;
 			}
 
+			/**
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief 析构函数（Destructor）
+			*  
+			*  该析构函数用于清理PmtWriter实例。使用默认析构函数，自动释放成员变量。
+			*  
+			*  @note 使用默认析构函数，智能指针自动管理ProgramInfo对象
+			*/
 			~PmtWriter() = default;
 		public:
 			/**
-			*  Pmt
-			* @param w: 写入类
-			* return 返回值
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief 写入PMT表（Write PMT Table）
+			*  
+			*  该方法用于写入PMT（Program Map Table，节目映射表）。PMT表列出了
+			*  节目的所有原始流（音频、视频等）信息，包括流类型和PID。
+			*  
+			*  PMT表数据格式（PMT Table Data Format）：
+			*  
+			*    0                   1                   2                   3
+			*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  program_number                                               |
+			*   |  (16 bits)                                                      |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  reserved(3) | PCR_PID (13 bits)                              |
+			*   |  (3 bits=111)|  (13 bits)                                      |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  reserved(4) | program_info_length (12 bits)                  |
+			*   |  (4 bits=1111)|  (12 bits)                                     |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   :                        Program Info Descriptors (variable)    :
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   :                        Elementary Stream List                 :
+			*   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+			*   |  | stream_type (8 bits)                                       | |
+			*   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+			*   |  | reserved(3) | elementary_PID (13 bits)                     | |
+			*   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+			*   |  | reserved(4) | ES_info_length (12 bits)                     | |
+			*   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+			*   |  :  ES_info descriptors (variable)                            : |
+			*   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+			*   :  ... more elementary streams ...                              :
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*  
+			*  写入流程：
+			*  1. 构建PMT表数据，包括program_number、PCR_PID
+			*  2. 遍历programs_列表，为每个原始流添加条目
+			*  3. 每个条目包含stream_type和elementary_PID
+			*  4. 调用基类WriteSection方法封装为PSI Section
+			*  5. 分片到TS包并发送
+			*  
+			*  @param w StreamWriter指针，用于写入TS包数据，不能为空
+			*  @note 该方法会将PMT表数据封装为PSI Section，并调用基类WriteSection方法
+			*        写入到TS流中。PMT表固定使用table_id 0x02。
+			*  @note PMT表包含节目的所有原始流信息（音频、视频等）
+			*  
+			*  使用示例：
+			*  @code
+			*  PmtWriter pmt_writer;
+			*  // ... 添加原始流信息 ...
+			*  pmt_writer.WritePmt(stream_writer);
+			*  @endcode
 			*/
 			void WritePmt(StreamWriter *w);
+
 			/**
-			*  增加一路原始流的信息
-			* @param program: 原始流信息
-			* return 返回值
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief 添加原始流信息（Add Program Info）
+			*  
+			*  该方法用于向PMT表添加一个原始流的信息。每个原始流（音频、视频等）
+			*  都需要一个ProgramInfo条目，包含流类型和PID。
+			*  
+			*  原始流信息格式（Elementary Stream Info Format）：
+			*  
+			*    0                   1                   2                   3
+			*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  stream_type      |  reserved(3) | elementary_PID             |
+			*   |  (8 bits)         |  (3 bits=111)|  (13 bits)                  |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  reserved(4) | ES_info_length (12 bits)                       |
+			*   |  (4 bits=1111)|  (12 bits)                                      |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   :                        ES_info descriptors (variable)         :
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*  
+			*  @param program 指向ProgramInfo对象的共享指针，包含原始流的流类型和PID
+			*  @note 每个原始流（音频、视频等）都需要添加一个ProgramInfo条目
+			*  @note ProgramInfo包含stream_type（流类型）和elementary_pid（原始流PID）
+			*  
+			*  使用示例：
+			*  @code
+			*  auto video_info = std::make_shared<ProgramInfo>();
+			*  video_info->stream_type = 0x1B;  // H.264
+			*  video_info->elementary_pid = 0x1011;
+			*  pmt_writer.AddProgramInfo(video_info);
+			*  @endcode
 			*/
 			void AddProgramInfo(ProgramInfoPtr & program);
+
 			/**
-			*  设置pid 
-			* @param pid: pid
-			* return 返回值
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief 设置PCR PID（Set PCR PID）
+			*  
+			*  该方法用于设置PCR（Program Clock Reference）PID。PCR用于同步
+			*  接收端的时钟，通常与视频流的PID相同。
+			*  
+			*  PCR PID格式（PCR PID Format）：
+			*  
+			*    0                   1                   2                   3
+			*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  reserved(3) | PCR_PID (13 bits)                              |
+			*   |  (3 bits=111)|  (13 bits)                                      |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  格式: 0xE000 | pcr_id_                                        |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*  
+			*  PCR说明：
+			*  - PCR（Program Clock Reference）用于同步接收端的时钟
+			*  - PCR通常与视频流的PID相同
+			*  - PCR在TS包的adaptation_field中传输
+			*  
+			*  @param pid PCR PID值，范围0x0000-0x1FFF（13位）
+			*  @note PCR PID用于标识包含PCR字段的TS包
+			*  @note PCR通常与视频流的PID相同
+			*  
+			*  使用示例：
+			*  @code
+			*  pmt_writer.SetPcrPid(0x1011);  // 设置PCR PID为视频流PID
+			*  @endcode
 			*/
 			void SetPcrPid(int32_t pid);
 		private:
+			/**
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief PCR PID（PCR Packet Identifier）
+			*  
+			*  该成员变量用于存储PCR（Program Clock Reference）PID。PCR用于同步
+			*  接收端的时钟，通常与视频流的PID相同。
+			*  
+			*  PCR PID格式（PCR PID Format）：
+			*  
+			*    0                   1                   2                   3
+			*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  reserved(3) | PCR_PID (13 bits)                              |
+			*   |  (3 bits=111)|  (13 bits)                                      |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  写入格式: 0xE000 | pcr_id_                                    |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*  
+			*  @note 初始值为0xE000（保留值，实际PID的高3位）
+			*  @note PCR PID用于标识包含PCR字段的TS包
+			*  @note PCR通常与视频流的PID相同
+			*/
 			uint16_t    pcr_id_{ 0XE000 };
-			// 音视频数据
+
+			/**
+			*  @author chensong
+			*  @date 2025-05-02
+			*  @brief 原始流信息列表（Elementary Stream Info List）
+			*  
+			*  该成员变量用于存储节目的所有原始流信息列表。每个原始流（音频、视频等）
+			*  都有一个ProgramInfo条目，包含流类型和PID。
+			*  
+			*  原始流列表结构（Elementary Stream List Structure）：
+			*  
+			*    0                   1                   2                   3
+			*    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  programs_[0]  |  Stream 0 (stream_type, elementary_pid)     |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  programs_[1]  |  Stream 1 (stream_type, elementary_pid)     |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   :  ...            |  ...                                         :
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*   |  programs_[N]  |  Stream N (stream_type, elementary_pid)     |
+			*   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+			*  
+			*  @note 列表包含节目的所有原始流信息（音频、视频等）
+			*  @note 每个ProgramInfo包含stream_type（流类型）和elementary_pid（原始流PID）
+			*  @note 列表通过AddProgramInfo()方法添加原始流信息
+			*/
 			std::vector< ProgramInfoPtr> programs_;  //多少路原始流
 
 		};
