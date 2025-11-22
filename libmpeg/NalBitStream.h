@@ -1,4 +1,4 @@
-/******************************************************************************
+ï»¿/******************************************************************************
  *  Copyright (c) 2025 The CRTC project authors . All Rights Reserved.
  *
  *  Please visit https://chensongpoixs.github.io for detail
@@ -32,9 +32,9 @@ namespace libmedia_transfer_protocol
             uint16_t GetWord(int bits);
             uint32_t GetBitLong(int bits);
             uint64_t GetBit64(int bits);
-			//¸çÂ×²¼±àÂë
+			//å“¥ä¼¦å¸ƒç¼–ç 
             uint32_t GetUE();
-			// ÓĞ·ûºÅµÄ
+			// æœ‰ç¬¦å·çš„
             int32_t GetSE();
         private:
             char GetByte();
