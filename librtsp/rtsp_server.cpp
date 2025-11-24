@@ -286,7 +286,7 @@ namespace libmedia_transfer_protocol {
 			rtc::CopyOnWriteBuffer buffer(response_str.data(), response_str.size());
 			if (connection_)
 			{
-				connection_->Send(buffer);
+				//connection_->Send(buffer);
 			}
 		}
 
