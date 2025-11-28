@@ -27,7 +27,18 @@
 #include <string>
 #include <memory>
 #include "rtc_base/buffer.h"
+
+#ifdef _MSC_VER
+
+#include <Windows.h>
+#include <time.h> 
 #include <WinSock2.h>
+
+#elif defined(__GNUC__) ||defined(__APPLE__)
+
+ #include <arpa/inet.h>
+#endif
+
 #include "libmedia_transfer_protocol/librtcp/buffer.h"
 
 namespace libmedia_transfer_protocol {

@@ -29,7 +29,7 @@
 #include "libmedia_transfer_protocol/rtp_seq_num_only_ref_finder.h"
 #include "libmedia_transfer_protocol/rtp_vp8_ref_finder.h"
 #include "libmedia_transfer_protocol/rtp_vp9_ref_finder.h"
-
+#ifdef _MSC_VER
 namespace libmedia_transfer_protocol {
 namespace internal {
 class RtpFrameReferenceFinderImpl {
@@ -199,3 +199,5 @@ void RtpFrameReferenceFinder::AddPictureIdOffset(ReturnVector& frames) {
 }
 
 }  // namespace webrtc
+
+#endif // #ifdef _MSC_VER

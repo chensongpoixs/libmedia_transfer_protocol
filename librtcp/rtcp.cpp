@@ -20,7 +20,7 @@
 
 #include <assert.h>
 #include <stddef.h>
-#include <WinSock2.h>
+
 #include "libmedia_transfer_protocol/string_utils.h"
 #include "libmedia_transfer_protocol/librtcp/rtcp.h"
 
@@ -32,10 +32,7 @@
 #include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
 #include "libmedia_transfer_protocol/librtcp/buffer.h"
 
-#ifdef _WIN32
-#include <Windows.h>
-#include <time.h> 
-#endif
+
 
 
 
@@ -53,7 +50,7 @@ namespace libmedia_transfer_protocol {
 #ifdef _WIN32 
                 localtime_s(&tm, &sec);
 #else
-                no_locks_localtime(&tm, sec);
+                  localtime_r(&sec, &tm);
 #endif //_WIN32
                 return tm;
             }

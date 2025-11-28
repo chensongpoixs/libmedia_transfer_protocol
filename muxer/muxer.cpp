@@ -73,16 +73,27 @@ namespace libmedia_transfer_protocol
 
 	}
 	Muxer::Muxer( ) 
+		#ifdef _MSC_VER
 		:audio_processing_filter_(new libmedia_codec::AudioProcessingFilter())
+		#elif defined(__linux__) ||defined(__APPLE__) 
+		:audio_processing_filter_(nullptr)
+		#endif // #elif defined(__linux__) ||defined(__APPLE__)
 	{
-		audio_processing_filter_->Configure();
+		#ifdef _MSC_VER
+			audio_processing_filter_->Configure();
+		#elif defined(__linux__) ||defined(__APPLE__) 
+		 
+		#endif // #elif defined(__linux__) ||defined(__APPLE__)
+		
 		//audio_processing_filter_->SignalAudio3AFrame(this, )
 	}
 	Muxer::~Muxer()
 	{
 		RTC_LOG_T_F(LS_INFO) << "";
-		audio_processing_filter_->SignalAudio3AFrame.disconnect_all();
-		if (opus_encoder_)
+		#ifdef _MSC_VER
+			
+			audio_processing_filter_->SignalAudio3AFrame.disconnect_all();
+			if (opus_encoder_)
 		{
 			opus_encoder_->SignalAudioEncoderInfoFrame.disconnect_all();
 			opus_encoder_->Stop();
@@ -92,6 +103,10 @@ namespace libmedia_transfer_protocol
 		{
 			aac_decoder_.reset();
 		}
+		#elif defined(__linux__) ||defined(__APPLE__) 
+		 
+		#endif // #elif defined(__linux__) ||defined(__APPLE__)
+		
 	}
 	void   Muxer::SendVideoEncode(std::shared_ptr<libmedia_codec::EncodedImage> f)
 	{
@@ -114,12 +129,14 @@ namespace libmedia_transfer_protocol
 			//{
 			//	return -1;
 			//}
+			#ifdef _MSC_VER
 			int ret = libmedia_codec::getAdtsFrame((const uint8_t *)frame.data(), frame.size(), &aac_adts_header_info);
 			if (ret != 0)
 			{
 				LIBMUXER_LOG_T_F(LS_WARNING)<<"get adts frame : " << ret;
 			}
 			RTC_ASSERT(frame.size() == aac_adts_header_info.aac_frame_length, " aac adts data size : %u != aac length: %u !", frame.size(), aac_adts_header_info.aac_frame_length);
+		
 			aac_decoder_ = std::make_shared<libmedia_codec::AacDecoder>();
 			//aac_decoder_->Init(adts_header_.acc_adts_header_info_.sample_rate, adts_header_.acc_adts_header_info_.crc_absent);
 			aac_decoder_->Init((unsigned char *)frame.data(), aac_adts_header_info.aac_frame_length );
@@ -133,6 +150,9 @@ namespace libmedia_transfer_protocol
 				opus_encoder_->SetSample(ff_mpeg4audio_sample_rates[aac_adts_header_info.sampling_freq_index]/*aac_adts_header_info.sampling_freq_index*/);
 				opus_encoder_->Start();
 			}
+			#else 
+			// TODO@chensong 2025-11-27 linux 
+			#endif // 
 			return 0;
 		}
 		
@@ -142,6 +162,7 @@ namespace libmedia_transfer_protocol
 		//{
 		//	return -1;
 		//}
+		#ifdef _MSC_VER
 		int ret = libmedia_codec::getAdtsFrame((const uint8_t *)frame.data(), frame.size(), &aac_adts_header_info);
 		if (ret != 0)
 		{
@@ -149,11 +170,17 @@ namespace libmedia_transfer_protocol
 		}
 		RTC_ASSERT(frame.size() == aac_adts_header_info.aac_frame_length, " aac adts data size : %u != aac length: %u !", frame.size(), aac_adts_header_info.aac_frame_length);
 
+		
 		rtc::Buffer  pcm  = aac_decoder_->Decode((unsigned char *)(frame.data()), aac_adts_header_info.aac_frame_length);
 		if (pcm.size() <= 0)
 		{
 			return 0;
 		}
+		#else 
+
+			// linux TODO@chensong 2025-11-27
+			return 0;
+		#endif // 
 #if 0
 		static FILE * out_file_ptr = fopen("aac_ch_.pcm", "wb+");
 		if (out_file_ptr)
@@ -164,7 +191,7 @@ namespace libmedia_transfer_protocol
 #endif //
 
 
-#if 1
+#if _MSC_VER
 		// samplerate:32000 channels:2
 		std::shared_ptr<libmedia_codec::AudioFrame> pcm_frame = std::make_shared<libmedia_codec::AudioFrame>();
 		pcm_frame->sample_rate_hz_ =   ff_mpeg4audio_sample_rates[aac_adts_header_info.sampling_freq_index];
@@ -173,6 +200,8 @@ namespace libmedia_transfer_protocol
 		//RTC_LOG(LS_INFO) << "sample_rate_hz:" << pcm_frame->sample_rate_hz_ << ", samples_per_channel_: " << pcm_frame->samples_per_channel_;
 		memcpy((   uint8_t  *)(pcm_frame->mutable_data()), pcm.data(), pcm.size());
 		audio_processing_filter_->OnNewMediaFrame(pcm_frame);
+		#else 
+		// TODO@chensong 2025-11-27 
 #endif 
 		//return int32_t();
 		return 0;

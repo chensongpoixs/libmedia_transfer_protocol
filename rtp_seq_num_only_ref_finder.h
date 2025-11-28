@@ -31,7 +31,7 @@
 #include "libmedia_codec/frame_object.h"
 #include "libmedia_transfer_protocol/rtp_frame_reference_finder.h"
 #include "rtc_base/numerics/sequence_number_util.h"
-
+#ifdef _MSC_VER
 namespace libmedia_transfer_protocol {
 
 class RtpSeqNumOnlyRefFinder {
@@ -76,5 +76,5 @@ class RtpSeqNumOnlyRefFinder {
 };
 
 }  // namespace webrtc
-
+#endif // #ifdef _MSC_VER
 #endif  // MODULES_VIDEO_CODING_RTP_SEQ_NUM_ONLY_REF_FINDER_H_

@@ -28,6 +28,7 @@
 #include <functional> 
 #include <atomic>
 #include <stdexcept>
+#include <cstring>
 
 
 namespace libmedia_transfer_protocol {

@@ -76,6 +76,7 @@ AVCC格式
  
 #include <functional>
 #include <memory>
+#include <list>
 
 #include "libmedia_transfer_protocol/libmpeg/cstream_writer.h"
 #include "libmedia_transfer_protocol/libmpeg/cmpeg_type.h"

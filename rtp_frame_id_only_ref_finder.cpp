@@ -23,7 +23,7 @@
 #include <utility>
 
 #include "rtc_base/logging.h"
-
+#ifdef _MSC_VER
 namespace libmedia_transfer_protocol {
 
 RtpFrameReferenceFinder::ReturnVector RtpFrameIdOnlyRefFinder::ManageFrame(
@@ -41,3 +41,6 @@ RtpFrameReferenceFinder::ReturnVector RtpFrameIdOnlyRefFinder::ManageFrame(
 }
 
 }  // namespace webrtc
+
+
+#endif // #ifdef _MSC_VER

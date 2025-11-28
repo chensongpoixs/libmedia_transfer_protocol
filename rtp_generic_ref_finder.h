@@ -26,7 +26,7 @@
 
 #include "libmedia_codec/frame_object.h"
 #include "libmedia_transfer_protocol/rtp_frame_reference_finder.h"
-
+#ifdef _MSC_VER
 namespace libmedia_transfer_protocol {
 
 class RtpGenericFrameRefFinder {
@@ -39,5 +39,7 @@ class RtpGenericFrameRefFinder {
 };
 
 }  // namespace webrtc
+
+#endif // #ifdef _MSC_VER
 
 #endif  // MODULES_VIDEO_CODING_RTP_GENERIC_REF_FINDER_H_
