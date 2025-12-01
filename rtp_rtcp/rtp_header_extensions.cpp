@@ -33,6 +33,9 @@
 #include "modules/video_coding/codecs/interface/common_constants.h"
 #include "modules/video_coding/codecs/vp9/include/vp9_globals.h"
 #include "rtc_base/checks.h"
+#include "libmedia_codec/video_content_type.h"
+
+
 
 namespace libmedia_transfer_protocol {
 // Absolute send time in RTP streams.
@@ -470,11 +473,13 @@ constexpr uint8_t VideoContentTypeExtension::kValueSizeBytes;
 
 bool VideoContentTypeExtension::Parse(rtc::ArrayView<const uint8_t> data,
 	libmedia_codec::VideoContentType* content_type) {
+    #if _MSC_VER
   if (data.size() == 1 &&
-	  libmedia_codec::videocontenttypehelpers::IsValidContentType(data[0])) {
+	  libmedia_codec::videocontenttypehelpers::IsValidContentType(static_cast<uint8_t>(data[0]))) {
     *content_type = static_cast<libmedia_codec::VideoContentType>(data[0]);
     return true;
   }
+  #endif // _MSC_VER
   return false;
 }
 
