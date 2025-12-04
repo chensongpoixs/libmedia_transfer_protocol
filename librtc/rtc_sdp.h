@@ -162,6 +162,10 @@ namespace libmedia_transfer_protocol {
 			/** 获取视频负载类型 */
 			int32_t GetVideoPayloadType() const;
 			
+
+			uint32_t GetVideoPayloadRtxType() const;
+
+
 			/** 获取音频负载类型 */
 			int32_t GetAudioPayloadType() const;
 
@@ -206,7 +210,7 @@ namespace libmedia_transfer_protocol {
 			
 			/** 获取视频RTX SSRC */
 			uint32_t VideoRtxSsrc() const;
-			
+
 			/** 获取音频SSRC */
 			uint32_t AudioSsrc() const;
 			
@@ -218,7 +222,7 @@ namespace libmedia_transfer_protocol {
 		private:
 			int32_t audio_payload_type_{ -1 };
 			int32_t video_payload_type_{ -1 };
-			int32_t video_payload_rtx_type_{-1};
+			int32_t video_payload_rtx_type_{128};
 			// Զ�˵��û���������
 			std::string remote_ufrag_;
 			/*  a = setup ��Ҫ�Ǳ�ʾdtls��Э�̹����н�ɫ�����⣬˭�ǿͻ��ˣ�˭�Ƿ�����

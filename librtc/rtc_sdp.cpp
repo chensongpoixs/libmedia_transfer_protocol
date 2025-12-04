@@ -338,6 +338,10 @@ namespace libmedia_transfer_protocol {
 		{
 			return video_payload_type_;
 		}
+		uint32_t RtcSdp::GetVideoPayloadRtxType() const
+		{
+			return video_payload_rtx_type_;
+		}
 		int32_t RtcSdp::GetAudioPayloadType() const
 		{
 			return  audio_payload_type_;
