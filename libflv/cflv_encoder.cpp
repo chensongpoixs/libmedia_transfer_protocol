@@ -14,7 +14,7 @@ created: 		2025-04-29
 
 author:			chensong
 
-purpose:		http_parser
+purpose:		FLV Encoder - FLV格式编码器实现
 输赢不重要，答案对你们有什么意义才重要。
 
 光阴者，百代之过客也，唯有奋力奔跑，方能生风起时，是时代造英雄，英雄存在于时代。或许世人道你轻狂，可你本就年少啊。 看护好，自己的理想和激情。
@@ -47,286 +47,378 @@ namespace libmedia_transfer_protocol
 	namespace libflv
 	{
 		namespace {
-			 
+			/**
+			*  @brief 写入24位大端序整数（Write 24-bit Big-Endian Integer）
+			*  
+			*  将32位整数的低24位以大端序（Big-Endian）格式写入内存。
+			*  FLV格式中的DataSize和Timestamp字段使用24位大端序。
+			*  
+			*  @param p 目标内存地址
+			*  @param val 要写入的值（只使用低24位）
+			*  
+			*  示例：
+			*  val = 0x123456 -> 内存布局: [0x12, 0x34, 0x56]
+			*/
 			static void set_be24(void *p, uint32_t val)
 			{
 				uint8_t *data = (uint8_t *)p;
-				data[0] = val >> 16;
-				data[1] = val >> 8;
-				data[2] = val;
+				data[0] = val >> 16;  // 高8位
+				data[1] = val >> 8;   // 中8位
+				data[2] = val;        // 低8位
 			}
+			
+			/**
+			*  @brief 写入32位大端序整数（Write 32-bit Big-Endian Integer）
+			*  
+			*  将32位整数以大端序（Big-Endian）格式写入内存。
+			*  FLV格式中的PreviousTagSize和NALU长度字段使用32位大端序。
+			*  
+			*  @param p 目标内存地址
+			*  @param val 要写入的值
+			*  
+			*  示例：
+			*  val = 0x12345678 -> 内存布局: [0x12, 0x34, 0x56, 0x78]
+			*/
 			static void set_be32(void *p, uint32_t val)
 			{
 				uint8_t *data = (uint8_t *)p;
-				data[0] = val >> 24;
-				data[1] = val >> 16;
-				data[2] = val >> 8;
-				data[3] = val;
+				data[0] = val >> 24;  // 最高8位
+				data[1] = val >> 16;  // 次高8位
+				data[2] = val >> 8;   // 次低8位
+				data[3] = val;        // 最低8位
 			}
+			
+			/**
+			*  @brief FLV编码器名称常量
+			*  
+			*  用于onMetaData中的encoder字段，标识编码器来源。
+			*/
 			static const char   kflv_muxer[] = "libflv_rtc";
 
 
+			/**
+			*  @brief FLV视频帧类型位偏移量
+			*  
+			*  FLV Video Tag的第一个字节高4位表示帧类型，需要左移4位。
+			*/
 #define FLV_VIDEO_FRAMETYPE_OFFSET   4
 
+			/**
+			*  @brief FLV视频帧类型枚举（FLV Video Frame Type）
+			*  
+			*  定义FLV视频帧的类型标识，用于Video Tag的第一个字节高4位。
+			*/
 			enum {
-				FLV_FRAME_KEY = 1 << FLV_VIDEO_FRAMETYPE_OFFSET, ///< key frame (for AVC, a seekable frame)
-				FLV_FRAME_INTER = 2 << FLV_VIDEO_FRAMETYPE_OFFSET, ///< inter frame (for AVC, a non-seekable frame)
-				FLV_FRAME_DISP_INTER = 3 << FLV_VIDEO_FRAMETYPE_OFFSET, ///< disposable inter frame (H.263 only)
-				FLV_FRAME_GENERATED_KEY = 4 << FLV_VIDEO_FRAMETYPE_OFFSET, ///< generated key frame (reserved for server use only)
-				FLV_FRAME_VIDEO_INFO_CMD = 5 << FLV_VIDEO_FRAMETYPE_OFFSET, ///< video info/command frame
+				FLV_FRAME_KEY = 1 << FLV_VIDEO_FRAMETYPE_OFFSET,           ///< 关键帧（可搜索帧，IDR帧）
+				FLV_FRAME_INTER = 2 << FLV_VIDEO_FRAMETYPE_OFFSET,         ///< 非关键帧（不可搜索帧，P帧/B帧）
+				FLV_FRAME_DISP_INTER = 3 << FLV_VIDEO_FRAMETYPE_OFFSET,    ///< 可丢弃的非关键帧（仅H.263）
+				FLV_FRAME_GENERATED_KEY = 4 << FLV_VIDEO_FRAMETYPE_OFFSET, ///< 生成的关键帧（服务器保留）
+				FLV_FRAME_VIDEO_INFO_CMD = 5 << FLV_VIDEO_FRAMETYPE_OFFSET,///< 视频信息/命令帧
 			};
+			
+			/**
+			*  @brief FLV视频编码格式ID枚举（FLV Video Codec ID）
+			*  
+			*  定义FLV支持的视频编码格式标识，用于Video Tag的第一个字节低4位。
+			*/
 			enum {
-				FLV_CODECID_H263 = 2,
-				FLV_CODECID_SCREEN = 3,
-				FLV_CODECID_VP6 = 4,
-				FLV_CODECID_VP6A = 5,
-				FLV_CODECID_SCREEN2 = 6,
-				FLV_CODECID_H264 = 7,
-				FLV_CODECID_REALH263 = 8,
-				FLV_CODECID_MPEG4 = 9,
+				FLV_CODECID_H263 = 2,      ///< H.263编码
+				FLV_CODECID_SCREEN = 3,    ///< Screen video编码
+				FLV_CODECID_VP6 = 4,       ///< VP6编码
+				FLV_CODECID_VP6A = 5,      ///< VP6 with alpha编码
+				FLV_CODECID_SCREEN2 = 6,   ///< Screen video v2编码
+				FLV_CODECID_H264 = 7,      ///< H.264/AVC编码（最常用）
+				FLV_CODECID_REALH263 = 8,  ///< Real H.263编码
+				FLV_CODECID_MPEG4 = 9,     ///< MPEG-4编码
 			};
 			// const char   kflv_muxerl[] = "libflv_rtc";
 		}
+		/**
+		*  @brief FlvEncoder构造函数实现
+		*  
+		*  初始化FLV编码器，分配缓冲区，打开输出文件，发送HTTP响应头。
+		*  
+		*  初始化步骤：
+		*  1. 保存网络连接指针
+		*  2. 分配8MB输出缓冲区（out_buffer_）
+		*  3. 分配8MB发送缓冲区（send_buffer_）
+		*  4. 初始化时间戳和标志位
+		*  5. 如果指定文件名，打开文件用于输出
+		*  6. 如果有网络连接，发送HTTP响应头
+		*  
+		*  HTTP响应头内容：
+		*  - HTTP/1.1 200 OK
+		*  - Access-Control-Allow-Origin: *（允许跨域访问）
+		*  - Content-Type: video/x-flv; charset=utf-8
+		*  - Connection: Keep-Alive（保持连接）
+		*/
 		FlvEncoder::FlvEncoder(  libnetwork::Connection* conn, const char * out_flv_file_name)
 			:connection_(conn) 
 			, out_file_ptr_(NULL)
-			, out_buffer_(new uint8_t[1024 * 1024 * 8])
+			, out_buffer_(new uint8_t[1024 * 1024 * 8])  // 分配8MB输出缓冲区
 			, start_timestamp_(0)
 			, send_sps_(false)
 			, sps_("" )
 			, pps_( "")
-			, send_buffer_(new uint8_t[1024 * 1024 * 8])
+			, send_buffer_(new uint8_t[1024 * 1024 * 8])  // 分配8MB发送缓冲区
 			, send_size_(0)
 		{
 			LIBFLV_LOG_T_F(LS_INFO);
 			current_ = out_buffer_;
 			prev_packet_size_ = 0;
-			// http header
+			
+			// 构造HTTP响应头
 			std::stringstream ss;
 			ss << "HTTP/1.1 200 OK \r\n";
-
-			ss << "Access-Control-Allow-Origin:*\r\n";
-			ss << "Content-Type: video/x-flv; charset=utf-8\r\n";
-			ss << "Connection: Keep-Alive\r\n";
-			ss << "\r\n";
+			ss << "Access-Control-Allow-Origin:*\r\n";  // 允许跨域
+			ss << "Content-Type: video/x-flv; charset=utf-8\r\n";  // FLV MIME类型
+			ss << "Connection: Keep-Alive\r\n";  // 保持连接
+			ss << "\r\n";  // 响应头结束
 			
-		 
+		 	// 如果指定了输出文件名，打开文件
 			if (out_flv_file_name)
 			{
 				out_file_ptr_ = fopen(out_flv_file_name, "wb+");
 			}
 			
- 
+ 			// 如果有网络连接，发送HTTP响应头
 			if (connection_)
 			{
 				connection_->AsyncSend(ss.str());
 			}
-			
-
 		}
 
+		/**
+		*  @brief FlvEncoder析构函数实现
+		*  
+		*  清理FLV编码器资源，释放缓冲区，关闭文件。
+		*  
+		*  清理步骤：
+		*  1. 释放输出缓冲区（out_buffer_）
+		*  2. 释放发送缓冲区（send_buffer_）
+		*  3. 刷新并关闭输出文件
+		*/
 		FlvEncoder::~FlvEncoder()
 		{
 			LIBFLV_LOG_T_F(LS_INFO);
+			// 释放输出缓冲区
 			if (out_buffer_)
 			{
 				delete out_buffer_;
 				out_buffer_ = NULL;
 			}
+			// 释放发送缓冲区
 			if (send_buffer_)
 			{
 				delete[]send_buffer_;
 				send_buffer_ = nullptr;
 			}
+			// 关闭输出文件
 			if (out_file_ptr_)
 			{
-				fflush(out_file_ptr_);
+				fflush(out_file_ptr_);  // 刷新缓冲区
 				fclose(out_file_ptr_);
 				out_file_ptr_ = nullptr;
 			}
 		}
 
 		
+		/**
+		*  @brief 发送FLV Header和onMetaData实现
+		*  
+		*  该方法发送FLV文件头和元数据Tag，是FLV流的第一个数据包。
+		*  
+		*  发送流程：
+		*  1. 构造并发送FLV Header（9字节）
+		*  2. 构造并发送onMetaData脚本数据Tag（使用AMF0格式）
+		*  
+		*  FLV Header结构：
+		*  - 签名："FLV"（3字节）
+		*  - 版本号：1（1字节）
+		*  - 标志位：音频/视频标志（1字节）
+		*  - 头长度：9（4字节，大端序）
+		*  - PreviousTagSize0：0（4字节）
+		*  
+		*  onMetaData内容（AMF0格式）：
+		*  - 字符串："onMetaData"
+		*  - ECMA数组：包含视频和音频的元数据
+		*    * 视频元数据：duration, videocodecid, videodatarate, framerate, width, height
+		*    * 音频元数据：audiocodecid, audiodatarate, audiosamplerate, audiosamplesize, stereo
+		*    * 编码器信息：encoder
+		*/
 		void FlvEncoder::SendFlvHeader(bool has_auido, bool has_video)
 		{
-			
 			uint8_t * header = current_;
-			//uint8_t   send_buffer[1024] = { 0 };
 			int32_t  index = 0;
-#if 0
-			if (!has_auido)
-			{
-				memcpy(header+ index, flv_video_only_header, sizeof(flv_video_only_header));
-				index +=  sizeof(flv_video_only_header);
-			}
-			else if (!has_video)
-			{
-				memcpy(header + index, flv_audio_only_header, sizeof(flv_audio_only_header));
-				index +=  sizeof(flv_audio_only_header);
-			}
-			else
-			{
-				memcpy(header+ index, flv_header, sizeof(flv_header));
-				index +=  sizeof(flv_header);
-			}
-#else 
+			
+			// 构造FLV Header
 			libflv::FLVHeader flv_header = { 0 };
-
 			flv_header.flv[0] = 'F';
 			flv_header.flv[1] = 'L';
 			flv_header.flv[2] = 'V';
-			flv_header.version = libflv::FLVHeader::kFlvVersion;
-			flv_header.length = htonl(libflv::FLVHeader::kFlvHeaderLength);
-			flv_header.have_video = has_video;
-			flv_header.have_audio = has_auido;
+			flv_header.version = libflv::FLVHeader::kFlvVersion;  // 版本号=1
+			flv_header.length = htonl(libflv::FLVHeader::kFlvHeaderLength);  // 头长度=9
+			flv_header.have_video = has_video;  // 视频标志
+			flv_header.have_audio = has_auido;  // 音频标志
 
-
+			// 发送FLV Header
 			Writer((const uint8_t *)&flv_header, sizeof(libflv::FLVHeader));
-#endif 
-			//connection_->AsyncSend( rtc::CopyOnWriteBuffer( current_, index ));
-
-			//prev_packet_size_ = index;
+			
+			// 构造onMetaData脚本数据Tag
 			uint8_t * metadata = current_ ;
 			uint8_t * ptr = metadata;
 			uint8_t *end = ptr + (1024 * 1023);
 
+			// 计算元数据项数量
 			uint8_t count = (has_auido ? 5 : 0) + (has_video ? 7 : 0) + 1;
+			
+			// 写入"onMetaData"字符串
 			ptr = AMFWriteString(ptr, end, "onMetaData", 10);
-			// value: SCRIPTDATAECMAARRAY
+			
+			// 写入ECMA数组类型和元素数量
 			ptr[0] = AMF_ECMA_ARRAY;
-			ptr[1] = (uint8_t)((count >> 24) & 0xFF);;
-			ptr[2] = (uint8_t)((count >> 16) & 0xFF);;
+			ptr[1] = (uint8_t)((count >> 24) & 0xFF);
+			ptr[2] = (uint8_t)((count >> 16) & 0xFF);
 			ptr[3] = (uint8_t)((count >> 8) & 0xFF);
 			ptr[4] = (uint8_t)(count & 0xFF);
 			ptr += 5;
 
-
+			// 写入音频元数据
 			if (has_auido)
 			{
-				ptr = AMFWriteNamedDouble(ptr, end, "audiocodecid", 12, 10);
-				ptr = AMFWriteNamedDouble(ptr, end, "audiodatarate", 13, 125 /* / 1024.0*/);
-				ptr = AMFWriteNamedDouble(ptr, end, "audiosamplerate", 15, 44100);
-				ptr = AMFWriteNamedDouble(ptr, end, "audiosamplesize", 15, 16);
-				ptr = AMFWriteNamedBoolean(ptr, end, "stereo", 6, (uint8_t)true);
+				ptr = AMFWriteNamedDouble(ptr, end, "audiocodecid", 12, 10);  // AAC编码ID=10
+				ptr = AMFWriteNamedDouble(ptr, end, "audiodatarate", 13, 125);  // 音频码率=125kbps
+				ptr = AMFWriteNamedDouble(ptr, end, "audiosamplerate", 15, 44100);  // 采样率=44.1kHz
+				ptr = AMFWriteNamedDouble(ptr, end, "audiosamplesize", 15, 16);  // 采样精度=16bit
+				ptr = AMFWriteNamedBoolean(ptr, end, "stereo", 6, (uint8_t)true);  // 立体声
 			}
 		
+			// 写入视频元数据
 			if (has_video)
 			{
-				ptr = AMFWriteNamedDouble(ptr, end, "duration", 8, 0 );
-				//ptr = AMFWriteNamedDouble(ptr, end, "interval", 8, metadata->interval);
-				ptr = AMFWriteNamedDouble(ptr, end, "videocodecid", 12, 7);
-				ptr = AMFWriteNamedDouble(ptr, end, "videodatarate", 13, 0 /* / 1024.0*/);
-				ptr = AMFWriteNamedDouble(ptr, end, "framerate", 9, 25);
-				ptr = AMFWriteNamedDouble(ptr, end, "height", 6, 2560);
-				ptr = AMFWriteNamedDouble(ptr, end, "width", 5, 1440);
+				ptr = AMFWriteNamedDouble(ptr, end, "duration", 8, 0);  // 视频时长（初始为0）
+				ptr = AMFWriteNamedDouble(ptr, end, "videocodecid", 12, 7);  // H.264编码ID=7
+				ptr = AMFWriteNamedDouble(ptr, end, "videodatarate", 13, 0);  // 视频码率（初始为0）
+				ptr = AMFWriteNamedDouble(ptr, end, "framerate", 9, 25);  // 帧率=25fps
+				ptr = AMFWriteNamedDouble(ptr, end, "height", 6, 2560);  // 视频高度=2560
+				ptr = AMFWriteNamedDouble(ptr, end, "width", 5, 1440);  // 视频宽度=1440
 			}
+			
+			// 写入编码器信息
 			ptr = AMFWriteNamedString(ptr, end, "encoder", 7, kflv_muxer, strlen(kflv_muxer));
+			
+			// 写入对象结束标记
 			ptr = AMFWriteObjectEnd(ptr, end);
 			 
+			// 发送onMetaData Tag（类型=18，时间戳=0）
 			WriteFlvTag(libflv::kFlvMsgTypeAMFMeta, metadata, ptr - metadata, 0);
- 
-			 
-			 
-			 
 		}
 		 
 		//void FlvContext::SendFlvOnMetaHeader()
 		//{
 		//}
 
-		/*
-		
-		# 二、 FLV文件头
-
-
-		1. 9个字节的TAG，描述版本号， 携带的数据有没有音频， 有没有视频
-		2. 音视频有三种组合： 只有音频、只有视频或者音视频都有
-		3. FLV文件头总是作为第一个数据先发送
+		/**
+		*  @brief 发送FLV视频帧实现
+		*  
+		*  该方法将H.264编码的视频帧封装为FLV Video Tag并发送。
+		*  
+		*  处理流程：
+		*  1. 解析H.264 NALU（使用起始码分割）
+		*  2. 根据NALU类型进行处理：
+		*     - SPS（7）：保存SPS数据
+		*     - PPS（8）：保存PPS数据
+		*     - IDR（5）：首次发送配置包，然后发送IDR帧
+		*     - 非IDR（1）：发送P帧
+		*  3. 将NALU封装为AVC格式（4字节长度前缀）
+		*  4. 构造FLV Video Tag并发送
+		*  
+		*  NALU类型说明：
+		*  - 7: SPS（Sequence Parameter Set）
+		*  - 8: PPS（Picture Parameter Set）
+		*  - 5: IDR（Instantaneous Decoder Refresh，关键帧）
+		*  - 1: 非IDR（P帧或B帧）
+		*  - 6: SEI（Supplemental Enhancement Information）
+		*  - 9: AUD（Access Unit Delimiter）
 		*/
 		bool FlvEncoder::SendFlvVideoFrame(const rtc::CopyOnWriteBuffer & frame, uint64_t timestamp)
 		{
-			
+			// 解析H.264 NALU（查找起始码00 00 00 01或00 00 01）
 			std::vector<webrtc::H264::NaluIndex> nalus = webrtc::H264::FindNaluIndices(
 				frame.data(), frame.size());
+				
+			// 遍历所有NALU
 			for (int32_t nal_index = 0; nal_index < nalus.size(); ++nal_index)
 			{
 				webrtc::NaluInfo nalu;
+				// 提取NALU类型（第一个字节的低5位）
 				nalu.type = frame.data()[nalus[nal_index].payload_start_offset] & 0x1F;
 				nalu.sps_id = -1;
 				nalu.pps_id = -1;
+				
 				switch (nalu.type) {
 				case webrtc::H264::NaluType::kSps: {
+					// 保存SPS数据
 					sps_ =  (std::string((const char *)(frame.data() + nalus[nal_index].payload_start_offset),
 						nalus[nal_index].payload_size));
-					 
 					break;
 				}
 				case webrtc::H264::NaluType::kPps: {
-
+					// 保存PPS数据
 					pps_ =  (std::string((char *)(frame.data() + nalus[nal_index].payload_start_offset),
 						nalus[nal_index].payload_size));
 					break;
 				}
 				case webrtc::H264::NaluType::kIdr:
 				{
-
-
+					// 处理IDR帧（关键帧）
 					if (!send_sps_)
 					{
+						// 首次发送IDR帧前，先发送配置包（包含SPS/PPS）
 						send_sps_ = true;
 						LIBFLV_LOG_T_F(LS_INFO) << "send decoder config ...";
 						WriteConfigPacket();
-						start_timestamp_ = timestamp;
+						start_timestamp_ = timestamp;  // 记录起始时间戳
 					}
+					
 					uint8_t * buffer = out_buffer_;
-
 					uint8_t *ptr = buffer;
+					
+					// 写入FrameType + CodecID（0x17 = 关键帧 + H.264）
 					*ptr = FLV_CODECID_H264;
 					*ptr++ |= FLV_FRAME_KEY;
-					//auto flags = (uint8_t)7;
-					//flags |= ((uint8_t)1 << 4);
-					//std::string  packet;
-
-					// header
-					//uint8_t dd = 0;
-					//packet.append((char)flags);
-					//packet.append((char)dd);
-					// avio_w8(pb, par->codec_tag | FLV_FRAME_KEY); // flags
-					// avio_w8(pb, 0); // AVC sequence header
-					// avio_wb24(pb, 0); // composition time
+					
+					// 写入AVCPacketType（1 = NALU数据）
 					*ptr++ = 1;
-					//*ptr++ = 0;
-					//*ptr++ = 0;
-					//*ptr++ = 0;
+					
+					// 写入CompositionTime（3字节，相对于DTS的偏移）
 					set_be24(ptr, timestamp - start_timestamp_);
 					ptr += 3;
-					// avcc
-					// sps
+					
+					// 写入SPS（4字节长度 + SPS数据）
 					set_be32(ptr, sps_.size());
 					ptr += 4;
 					memcpy(ptr, sps_.c_str(), sps_.size());
 					ptr += sps_.size();
-					// pps
+					
+					// 写入PPS（4字节长度 + PPS数据）
 					set_be32(ptr, pps_.size());
 					ptr += 4;
 					memcpy(ptr, pps_.c_str(), pps_.size());
 					ptr += pps_.size();
 
-					// idr
+					// 写入IDR NALU（4字节长度 + NALU数据）
 					set_be32(ptr, nalus[nal_index].payload_size);
 					ptr += 4;
 					memcpy(ptr, frame.data() + nalus[nal_index].payload_start_offset, nalus[nal_index].payload_size);
 					ptr += nalus[nal_index].payload_size;
-					//uint8_t  * new_data = (uint8_t*)(encoded_image->data() + nalus[nal_index].payload_start_offset - 2) ;
-					//new_data[0] = 2;
-					//new_data[1] = 1;
-					//LIBFLV_LOG_T_F(LS_INFO) << "send idr info ...";
+					
+					// 发送Video Tag（类型=9，时间戳相对于起始时间）
 					WriteFlvTag(libflv::kFlvMsgTypeVideo, buffer,
 						ptr - buffer, timestamp - start_timestamp_);
-					//LIBFLV_LOG_T_F(LS_INFO) << "send idr info -->";
 					break;
 				}
-				case webrtc::H264::NaluType::kSlice:  						 // Slices below don't contain SPS or PPS ids.
+				case webrtc::H264::NaluType::kSlice:  // P帧或B帧
 				case webrtc::H264::NaluType::kAud:
 				case webrtc::H264::NaluType::kEndOfSequence:
 				case webrtc::H264::NaluType::kEndOfStream:
@@ -337,331 +429,233 @@ namespace libmedia_transfer_protocol
 				{
 					if (!send_sps_)
 					{
-						//必须先发送sps pps idr 信息  decoder 解码信息  
+						// 必须先发送SPS/PPS/IDR，否则跳过非关键帧
 						continue;
 					}
+					
 					uint8_t * buffer = out_buffer_;
-
 					uint8_t *ptr = buffer;
+					
+					// 写入FrameType + CodecID（0x27 = 非关键帧 + H.264）
 					*ptr = FLV_CODECID_H264;
 					*ptr++ |= FLV_FRAME_INTER;
-
-
-
-					//auto flags = (uint8_t)7;
-					//flags |= ((uint8_t)1 << 4);
-					//std::string  packet;
-
-					// header
-					//uint8_t dd = 0;
-					//packet.append((char)flags);
-					//packet.append((char)dd);
-					// avio_w8(pb, par->codec_tag | FLV_FRAME_KEY); // flags
-					// avio_w8(pb, 0); // AVC sequence header
-					// avio_wb24(pb, 0); // composition time
-					//avio_w8(pb, 1); // AVC NALU
-					//avio_wb24(pb, pkt->pts - pkt->dts);
-					 *ptr++ = 1;
-					// *ptr++ = 0;
-					// *ptr++ = 0;
-					// *ptr++ = 0;
-					set_be24(ptr, timestamp-  start_timestamp_);
+					
+					// 写入AVCPacketType（1 = NALU数据）
+					*ptr++ = 1;
+					
+					// 写入CompositionTime（3字节）
+					set_be24(ptr, timestamp - start_timestamp_);
 					ptr += 3;
 
-
-					// idr
+					// 写入NALU（4字节长度 + NALU数据）
 					set_be32(ptr, nalus[nal_index].payload_size);
 					ptr += 4;
 					memcpy(ptr, frame.data() + nalus[nal_index].payload_start_offset, nalus[nal_index].payload_size);
 					ptr += nalus[nal_index].payload_size;
-					//uint8_t  * new_data = (uint8_t*)(encoded_image->data() + nalus[nal_index].payload_start_offset - 2) ;
-					//new_data[0] = 2;
-					//new_data[1] = 1;
-					//LIBFLV_LOG_T_F(LS_INFO) << "send sclie  info ...";
+					
+					// 发送Video Tag
 					WriteFlvTag(libflv::kFlvMsgTypeVideo, buffer,
 						ptr - buffer, timestamp - start_timestamp_);
-					 
 					break;
 				}
 				default: {
 					break;
 				}
-
 				}
 			}
 
 			return true;
 		}
+		/**
+		*  @brief 发送FLV音频帧实现
+		*  
+		*  该方法将AAC编码的音频帧封装为FLV Audio Tag并发送。
+		*  
+		*  FLV Audio Tag结构：
+		*  - SoundFormat（4位）：10（AAC）
+		*  - SoundRate（2位）：3（44kHz）
+		*  - SoundSize（1位）：1（16-bit）
+		*  - SoundType（1位）：1（立体声）
+		*  - AACPacketType（1字节）：1（AAC raw数据）
+		*  - AAC音频数据
+		*/
 		bool FlvEncoder::SendFlvAudioFrame(const rtc::CopyOnWriteBuffer & frame, uint64_t timestamp)
 		{
-			/*
+			uint8_t * buffer = out_buffer_; 
 			
-				|名称	|比特数|	描述|
-				|:---:|:---:|:---:|
-				|SoundFormat	|4	|音频编码格式|
-				|SoundRate	|2	|采样率|
-				|SoundSize	|1|	采样精度，0表示8-bit，1表示16-bit|
-				|SoundType	|1	|声道类型，0表示单声道，1表示立体声|
-				|SoundData|	N*8	|音频数据|
-			*/
-			 
-		 
-
-			//if (FLV_AUDIO_AAC == audio->codecid)
-			{
-				uint8_t * buffer = out_buffer_; 
-				buffer[0] = ( 10<< 4 /*audio->codecid aac */ /* <<4 */) /* SoundFormat */ | (3 << 2) /* 44k-SoundRate */ | (1 << 1) /* 16-bit samples */ | 1 /* Stereo sound */;
-				buffer[1] = 1;// audio->avpacket; // AACPacketType
-				memcpy(buffer + 2, frame.data(), frame.size());
-				WriteFlvTag(libflv::kFlvMsgTypeAudio, out_buffer_,
-					frame.size() +2, timestamp - start_timestamp_);
-				//return 2;
-			}
-			//else if (FLV_AUDIO_OPUS == audio->codecid || FLV_AUDIO_FLAC == audio->codecid || FLV_AUDIO_AC3 == audio->codecid || FLV_AUDIO_EAC3 == audio->codecid)
-			//{
-			//	if (len < 5)
-			//		return -1;
-
-			//	assert(FLV_SEQUENCE_HEADER == audio->avpacket || FLV_AVPACKET == audio->avpacket);
-			//	buf[0] = FLV_AUDIO_FOURCC | audio->avpacket;
-			//	switch (audio->codecid)
-			//	{
-			//	case FLV_AUDIO_FLAC:
-			//		buf[1] = (FLV_AUDIO_FOURCC_FLAC >> 24) & 0xFF;
-			//		buf[2] = (FLV_AUDIO_FOURCC_FLAC >> 16) & 0xFF;
-			//		buf[3] = (FLV_AUDIO_FOURCC_FLAC >> 8) & 0xFF;
-			//		buf[4] = (FLV_AUDIO_FOURCC_FLAC) & 0xFF;
-			//		break;
-
-			//	case FLV_AUDIO_AC3:
-			//		buf[1] = (FLV_AUDIO_FOURCC_AC3 >> 24) & 0xFF;
-			//		buf[2] = (FLV_AUDIO_FOURCC_AC3 >> 16) & 0xFF;
-			//		buf[3] = (FLV_AUDIO_FOURCC_AC3 >> 8) & 0xFF;
-			//		buf[4] = (FLV_AUDIO_FOURCC_AC3) & 0xFF;
-			//		break;
-
-			//	case FLV_AUDIO_EAC3:
-			//		buf[1] = (FLV_AUDIO_FOURCC_EAC3 >> 24) & 0xFF;
-			//		buf[2] = (FLV_AUDIO_FOURCC_EAC3 >> 16) & 0xFF;
-			//		buf[3] = (FLV_AUDIO_FOURCC_EAC3 >> 8) & 0xFF;
-			//		buf[4] = (FLV_AUDIO_FOURCC_EAC3) & 0xFF;
-			//		break;
-
-			//	case FLV_AUDIO_OPUS:
-			//		buf[1] = (FLV_AUDIO_FOURCC_OPUS >> 24) & 0xFF;
-			//		buf[2] = (FLV_AUDIO_FOURCC_OPUS >> 16) & 0xFF;
-			//		buf[3] = (FLV_AUDIO_FOURCC_OPUS >> 8) & 0xFF;
-			//		buf[4] = (FLV_AUDIO_FOURCC_OPUS) & 0xFF;
-			//		break;
-			//	}
-			//	return 5;
-			//}
-			//else
-			//{
-			//	buf[0] = (audio->codecid /* <<4 */) | ((audio->rate & 0x03) << 2) | ((audio->bits & 0x01) << 1) | (audio->channels & 0x01);
-			//	return 1;
-			//}
-
-
-
+			// 构造Audio Tag Header（2字节）
+			// SoundFormat=10（AAC）, SoundRate=3（44kHz）, SoundSize=1（16-bit）, SoundType=1（立体声）
+			buffer[0] = (10 << 4) | (3 << 2) | (1 << 1) | 1;
 			
-			return true;
-			// sps
-			// pps 
-			// idr 
-			// 00 00 00 01 
-			// 不使用上面的模式
-
-
-			uint32_t packet_size = frame.size();
-			uint8_t * send_buffer = current_;
-			uint32_t   index_size = 0;
-			uint8_t * p = (uint8_t *)&prev_packet_size_;
-			//  << "flv  header previous size: " << prev_packet_size_;
-			//  << "flv  header hex : " <<  
-
-			// (大端对齐)
-			/*memcpy(current_, p, sizeof(uint32_t));
-			current_ += 4;*/
-			//记录上一个tag的包数据的大小
-			send_buffer[index_size++] = p[3];
-			//current_++;
-			send_buffer[index_size++] = p[2];
-			//current_++;
-			send_buffer[index_size++] = p[1];
-			//current_++;
-			send_buffer[index_size++] = p[0];
-			//current_++;
-			// 包类型 
-			send_buffer[index_size++] = kFlvMsgTypeAudio;// 
-
-			//包长度 3个字节
+			// AACPacketType=1（AAC raw数据）
+			buffer[1] = 1;
 			
-			p = (uint8_t *)&packet_size;
-			send_buffer[index_size++] = p[2];
-			send_buffer[index_size++] = p[1];
-			send_buffer[index_size++] = p[0];
-			(void)(packet_size);
-			p = (uint8_t *)&timestamp;
-			send_buffer[index_size++] = p[2];
-			send_buffer[index_size++] = p[1];
-			send_buffer[index_size++] = p[0];
-			send_buffer[index_size++] = 0; //固定输入 '0';
-
-
-			send_buffer[index_size++] = 0;
-			send_buffer[index_size++] = 0;
-			send_buffer[index_size++] = 0;
-			{
-			  // vido type
-				//send_buffer[index_size++] = 0x17;
-				//send_buffer[index_size++] = 0;
-			}
-			//记录tag的包的大小给下一个包使用
-			prev_packet_size_ = packet_size + 11;
-
-		 
-			 if (out_file_ptr_)
-			 {
-				 fwrite(current_, 1, index_size, out_file_ptr_);
-				 fwrite(frame.data(), 1, frame.size(), out_file_ptr_);
-
-				 fflush(out_file_ptr_);
-			 }
- 
-			 if (connection_)
-			 { 
-				 connection_->AsyncSend(rtc::CopyOnWriteBuffer(current_, index_size));
-
-
-				 connection_->AsyncSend(rtc::CopyOnWriteBuffer(frame));
-			 }
+			// 复制AAC音频数据
+			memcpy(buffer + 2, frame.data(), frame.size());
 			
- 
+			// 发送Audio Tag（类型=8，时间戳相对于起始时间）
+			WriteFlvTag(libflv::kFlvMsgTypeAudio, out_buffer_,
+				frame.size() + 2, timestamp - start_timestamp_);
+			
 			return true;
 		}
 
 		
 
+		/**
+		*  @brief 写入AVC配置包实现
+		*  
+		*  该方法生成并发送AVCDecoderConfigurationRecord，包含SPS和PPS。
+		*  
+		*  AVCDecoderConfigurationRecord结构：
+		*  - FrameType + CodecID（1字节）：0x17（关键帧 + AVC）
+		*  - AVCPacketType（1字节）：0（AVC序列头）
+		*  - CompositionTime（3字节）：0
+		*  - configurationVersion（1字节）：1
+		*  - AVCProfileIndication（1字节）：SPS[1]
+		*  - profile_compatibility（1字节）：SPS[2]
+		*  - AVCLevelIndication（1字节）：SPS[3]
+		*  - lengthSizeMinusOne（1字节）：0xFF（NALU长度为4字节）
+		*  - numOfSequenceParameterSets（1字节）：0xE1（1个SPS）
+		*  - sequenceParameterSetLength（2字节）：SPS长度
+		*  - sequenceParameterSetNALUnit：SPS数据
+		*  - numOfPictureParameterSets（1字节）：1（1个PPS）
+		*  - pictureParameterSetLength（2字节）：PPS长度
+		*  - pictureParameterSetNALUnit：PPS数据
+		*/
 		void FlvEncoder::WriteConfigPacket()
 		{
-
 			uint8_t * buffer = out_buffer_;
-
 			uint8_t *ptr = buffer;
+			
+			// 写入FrameType + CodecID（0x17 = 关键帧 + H.264）
 			*ptr = FLV_CODECID_H264;
 			*ptr++ |= FLV_FRAME_KEY;
-			//config 编码信息设置为0 
+			
+			// 写入AVCPacketType（0 = AVC序列头）
+			*ptr++ = 0;
+			
+			// 写入CompositionTime（3字节，配置包为0）
 			*ptr++ = 0;
 			*ptr++ = 0;
 			*ptr++ = 0;
-			*ptr++ = 0;
-			// cts 
-			// AVCDecoderConfigurationRecord start
+			
+			// 构造AVCDecoderConfigurationRecord
 			std::string extra_data;
 			{
-
-				/*
-				configurationVersion	8	版本号，总是1
-				AVCProfileIndication	8	sps[1]
-				profile_compatibility	8	sps[2]
-				AVCLevelIndication	8	sps[3]
-				configurationVersion,AVCProfileIndication,profile_compatibility,AVCLevelIndication：都是一个字节，具体的内容由解码器去理解。
-				lengthSizeMinusOne：unit_length长度所占的字节数减1，也即lengthSizeMinusOne的值+1才是unit_length所占用的字节数。
-				numOfSequenceParameterSets：sps的个数
-				sequenceParameterSetLength：sps内容的长度
-				sequenceParameterSetNALUnit：sps的内容
-				numOfPictureParameterSets：pps的个数
-				pictureParameterSetLength：pps内容的长度
-				pictureParameterSetNALUnit：pps的内容
-				*/
-				// AVCDecoderConfigurationRecord start
-				extra_data.push_back(1); // version
-			//	*ptr++ = 1;
-				extra_data.push_back(sps_[1]); // profile
-				//*ptr++ = sps_[1];
-				extra_data.push_back(sps_[2]); // compat
-				//*ptr++ = sps_[2];
-				extra_data.push_back(sps_[3]); // level
-				//*ptr++ = sps_[3];
-				extra_data.push_back((char)0xff); // 6 bits reserved + 2 bits nal size length - 1 (11)
-				//*ptr++ = 0xff;
-				extra_data.push_back((char)0xe1); // 3 bits reserved + 5 bits number of sps (00001)
-				//*ptr++ = 0xe1;
-				// sps
+				// configurationVersion
+				extra_data.push_back(1);
+				
+				// AVCProfileIndication（Profile）
+				extra_data.push_back(sps_[1]);
+				
+				// profile_compatibility（兼容性）
+				extra_data.push_back(sps_[2]);
+				
+				// AVCLevelIndication（Level）
+				extra_data.push_back(sps_[3]);
+				
+				// lengthSizeMinusOne（0xFF表示NALU长度为4字节）
+				extra_data.push_back((char)0xff);
+				
+				// numOfSequenceParameterSets（0xE1表示1个SPS）
+				extra_data.push_back((char)0xe1);
+				
+				// SPS长度（2字节，大端序）
 				uint16_t size = (uint16_t)sps_.size();
 				size = htons(size);
 				extra_data.append((char *)&size, 2);
+				
+				// SPS数据
 				extra_data.append(sps_);
 				
-				// pps
-				extra_data.push_back(1); // version
+				// numOfPictureParameterSets（1个PPS）
+				extra_data.push_back(1);
+				
+				// PPS长度（2字节，大端序）
 				size = (uint16_t)pps_.size();
 				size = htons(size);
 				extra_data.append((char *)&size, 2);
+				
+				// PPS数据
 				extra_data.append(pps_);
-
 			}
 
-			// memcpy()
-			//packet.append(extra_data);
+			// 复制AVCDecoderConfigurationRecord到缓冲区
 			memcpy(ptr, extra_data.c_str(), extra_data.size());
 			ptr += extra_data.size();
+			
+			// 发送配置包（类型=9，时间戳=0）
 			WriteFlvTag(libflv::kFlvMsgTypeVideo, buffer, ptr - buffer, 0);
-			 
 		}
 
 
+		/**
+		*  @brief 写入FLV Tag实现
+		*  
+		*  该方法构造完整的FLV Tag结构并发送。
+		*  
+		*  FLV Tag结构：
+		*  1. Tag Header（11字节）
+		*  2. Tag Data（size字节）
+		*  3. PreviousTagSize（4字节）
+		*/
 		void FlvEncoder::WriteFlvTag(uint8_t type, const uint8_t * data, int32_t size, int64_t time_stamp)
 		{
-
-			
+			// 构造Tag Header
 			libflv::FlvTagHeader header;
-			header.type = type;
-			set_be24(header.data_size, (uint32_t)size);
-			header.timestamp_ex = (time_stamp >> 24) & 0xff;
-			set_be24(header.timestamp, time_stamp & 0xFFFFFF);
+			header.type = type;  // Tag类型（8=音频，9=视频，18=脚本数据）
+			set_be24(header.data_size, (uint32_t)size);  // Tag数据大小（24位大端序）
+			header.timestamp_ex = (time_stamp >> 24) & 0xff;  // 时间戳高8位
+			set_be24(header.timestamp, time_stamp & 0xFFFFFF);  // 时间戳低24位
 
-
-			//tag header
+			// 发送Tag Header
 			std::string tag_header;
 			tag_header.append((char *)&header, sizeof(header));
-			Writer((const uint8_t *)tag_header.c_str(), tag_header.size()); ///
+			Writer((const uint8_t *)tag_header.c_str(), tag_header.size());
 
-			//tag data
+			// 发送Tag Data
 			Writer(data, size);
 
-			//PreviousTagSize
+			// 发送PreviousTagSize（Tag Header + Tag Data的总大小）
 			uint32_t PreviousTag_Size = htonl((uint32_t)(size + sizeof(header)));
 			std::string PreviousTagSize;
 			PreviousTagSize.append((char *)&PreviousTag_Size, 4);
-			Writer((const uint8_t *)PreviousTagSize.c_str(), PreviousTagSize.size(), true); /// (obtainBuffer(), false);
-
+			Writer((const uint8_t *)PreviousTagSize.c_str(), PreviousTagSize.size(), true);  // fflsh=true，立即发送
 		}
 
+		/**
+		*  @brief 写入数据到输出实现
+		*  
+		*  该方法将数据写入文件和网络连接。
+		*  使用发送缓冲区进行批量发送，减少网络调用次数。
+		*  
+		*  @param data 要写入的数据指针
+		*  @param size 数据大小
+		*  @param fflsh 是否立即刷新发送缓冲区
+		*/
 		void FlvEncoder::Writer(const uint8_t * data, int32_t size, bool fflsh)
 		{
+			// 写入文件（如果有）
 			if (out_file_ptr_)
 			{
 				fwrite(data, 1, size, out_file_ptr_);
-
-
 				fflush(out_file_ptr_);
 			}
+			
+			// 追加到发送缓冲区
 			memcpy(send_buffer_ + send_size_, data, size);
 			send_size_ += size;
+			
+			// 如果需要刷新，发送缓冲区数据
 			if (fflsh)
 			{
 				if (connection_)
 				{
-
 					connection_->AsyncSend(rtc::CopyOnWriteBuffer(send_buffer_, send_size_));
-
 				}
-				
-				send_size_ = 0;
+				send_size_ = 0;  // 重置缓冲区大小
 			}
-			
 		}
 		 
 	}

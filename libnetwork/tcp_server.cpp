@@ -13,7 +13,13 @@
 				   Author: chensong
 				   date:  2025-10-08
 
-
+ * TCP服务器实现文件
+ * 
+ * 实现了TcpServer类的所有方法，包括：
+ * - 服务器启动和关闭
+ * - 客户端连接管理
+ * - Socket事件处理
+ * - 上下文管理
 
  ******************************************************************************/
 #include "libmedia_transfer_protocol/libnetwork/tcp_server.h"
@@ -29,6 +35,14 @@ namespace  libmedia_transfer_protocol {
 
 
 
+			/**
+		 * 构造函数实现
+		 * 
+		 * 创建ConnectionContext，初始化三个线程：
+		 * - signaling_thread：信令线程
+		 * - worker_thread：工作线程
+		 * - network_thread：网络线程
+		 */
 		TcpServer::TcpServer()
 			: context_(libp2p_peerconnection::ConnectionContext::Create())
 			, tcp_sessions_()
@@ -40,6 +54,14 @@ namespace  libmedia_transfer_protocol {
 			//});
 		}
 
+		/**
+		 * 析构函数实现
+		 * 
+		 * 清理流程：
+		 * 1. 断开监听Socket的所有信号连接
+		 * 2. 释放监听Socket
+		 * 3. 释放ConnectionContext
+		 */
 		TcpServer::~TcpServer()
 		{
 			if (control_socket_)
@@ -56,6 +78,20 @@ namespace  libmedia_transfer_protocol {
 			}
 		}
 
+			/**
+		 * 启动TCP服务器实现
+		 * 
+		 * 启动流程：
+		 * 1. 设置服务器地址（IP + 端口）
+		 * 2. 创建TCP Socket
+		 * 3. 绑定到指定地址
+		 * 4. 开始监听（队列长度500）
+		 * 5. 初始化Socket信号连接
+		 * 
+		 * @param ip 监听IP地址
+		 * @param port 监听端口号
+		 * @return 成功返回true，失败返回false
+		 */
 		bool TcpServer::Startup(const std::string &ip, uint16_t port)
 		{
 			server_address_.SetIP(ip);
@@ -86,34 +122,77 @@ namespace  libmedia_transfer_protocol {
 		}
 
 
+		/**
+		 * 关闭指定连接实现
+		 * 
+		 * 调用Connection的Close方法，异步关闭连接
+		 */
 		void TcpServer::CloseSession(Connection *conn)
 		{
 			conn->Close();
 		}
+		
+		/**
+		 * 关闭指定Socket实现
+		 * 
+		 * 直接关闭Socket（不推荐使用）
+		 */
 		void TcpServer::Close(rtc::Socket *socket)
 		{
 			socket->Close();
 		}
+			/**
+		 * 设置服务器级别的上下文对象（拷贝版本）
+		 */
 		void TcpServer::SetContext(int type, const std::shared_ptr<void> &context)
 		{
 			contexts_[type] = context;
 		}
+		
+		/**
+		 * 设置服务器级别的上下文对象（移动版本）
+		 */
 		void TcpServer::SetContext(int type, std::shared_ptr<void> &&context)
 		{
 			contexts_[type] = std::move(context);
 		}
+		
+		/**
+		 * 清除指定类型的上下文
+		 */
 		void TcpServer::ClearContext(int type)
 		{
 			contexts_[type].reset();
 		}
+		
+		/**
+		 * 清除所有上下文
+		 */
 		void TcpServer::ClearContext()
 		{
 			contexts_.clear();
 		}
+			/**
+		 * Connection数据接收回调实现
+		 * 
+		 * 转发Connection的数据接收事件到SignalOnRecv信号
+		 */
 		void TcpServer::OnSessionRecv(Connection * conn, const rtc::CopyOnWriteBuffer & data)
 		{
 			SignalOnRecv(conn, data);
 		}
+		
+		/**
+		 * Connection关闭回调实现
+		 * 
+		 * 处理流程：
+		 * 1. 投递清理任务到网络线程
+		 * 2. 从tcp_sessions_中查找Connection
+		 * 3. 触发SignalOnDestory信号
+		 * 4. 断开Connection的所有信号连接
+		 * 5. 释放Connection对象
+		 * 6. 从tcp_sessions_中移除
+		 */
 		void TcpServer::OnSessionClose(Connection*  conn)
 		{
 			network_thread()->PostTask(RTC_FROM_HERE, [this, conn]() {
@@ -137,6 +216,11 @@ namespace  libmedia_transfer_protocol {
 			});
 			
 		}
+			/**
+		 * 初始化监听Socket的信号连接
+		 * 
+		 * 将监听Socket的四个事件信号连接到对应的处理函数
+		 */
 		void TcpServer::InitSocketSignals()
 		{
 			control_socket_->SignalCloseEvent.connect(this, &TcpServer::OnClose);
@@ -144,10 +228,24 @@ namespace  libmedia_transfer_protocol {
 			control_socket_->SignalReadEvent.connect(this, &TcpServer::OnRead);
 			control_socket_->SignalWriteEvent.connect(this, &TcpServer::OnWrite);
 		}
+		
+		/**
+		 * Socket连接成功回调（监听Socket不会触发）
+		 */
 		void TcpServer::OnConnect(rtc::Socket* socket)
 		{
 			LIBNETWORK_LOG_T_F(LS_INFO) << "";
 		}
+		
+		/**
+		 * Socket关闭回调实现
+		 * 
+		 * 处理客户端Socket关闭事件：
+		 * 1. 从tcp_sessions_中查找Connection
+		 * 2. 触发SignalOnDestory信号
+		 * 3. 释放Connection对象
+		 * 4. 从tcp_sessions_中移除
+		 */
 		void TcpServer::OnClose(rtc::Socket* socket, int ret)
 		{
 			LIBNETWORK_LOG_T_F(LS_INFO) << "";
@@ -162,6 +260,20 @@ namespace  libmedia_transfer_protocol {
 			iter->second.reset();
 			tcp_sessions_.erase(iter);
 		}
+		
+		/**
+		 * Socket可读回调实现（接受新连接）
+		 * 
+		 * 处理流程：
+		 * 1. 调用Accept接受新连接
+		 * 2. 创建Connection对象
+		 * 3. 连接Connection的信号：
+		 *    - SignalOnRecv -> OnSessionRecv
+		 *    - SignalOnClose -> OnSessionClose
+		 * 4. 传递共享资源上下文（kShareResourceContext）
+		 * 5. 将Connection添加到tcp_sessions_
+		 * 6. 触发SignalOnNewConnection信号
+		 */
 		void TcpServer::OnRead(rtc::Socket* socket)
 		{
 			//LIBNETWORK_LOG_T_F(LS_INFO) << "";
@@ -192,6 +304,10 @@ namespace  libmedia_transfer_protocol {
 			}
 			SignalOnNewConnection(iter->second.get());
 		}
+		
+		/**
+		 * Socket可写回调
+		 */
 		void TcpServer::OnWrite(rtc::Socket* socket)
 		{
 			LIBNETWORK_LOG_T_F(LS_INFO) << "";

@@ -13,7 +13,14 @@
 				   Author: chensong
 				   date:  2025-10-08
 
-
+ * 网络连接实现 - Connection类的具体实现
+ * 
+ * 本文件实现了Connection类的所有方法，包括：
+ * - TCP/UDP连接的初始化
+ * - 异步数据收发
+ * - Socket事件处理
+ * - 上下文管理
+ * - 连接生命周期管理
 
  ******************************************************************************/
 
@@ -30,6 +37,16 @@
 namespace  libmedia_transfer_protocol {
 	namespace libnetwork
 	{
+			/**
+		 * UDP连接构造函数实现
+		 * 
+		 * 初始化流程：
+		 * 1. 保存网络线程和UDP套接字
+		 * 2. 记录远程地址
+		 * 3. 分配8MB接收缓冲区
+		 * 4. 设置协议类型为UDP
+		 * 5. 初始化Socket信号连接
+		 */
 		Connection::Connection(rtc::Thread* network_thread, rtc::AsyncPacketSocket* session, const rtc::SocketAddress& addr)
 			: network_thread_(network_thread)
 			, udp_session_(session)
@@ -43,6 +60,17 @@ namespace  libmedia_transfer_protocol {
 			LIBNETWORK_LOG_T_F(LS_INFO) << "remote:" << remote_address_.ToString();
 			InitSocketSignals();
 		}
+		
+		/**
+		 * TCP连接构造函数实现
+		 * 
+		 * 初始化流程：
+		 * 1. 保存网络线程和TCP套接字
+		 * 2. 从Socket获取远程地址
+		 * 3. 分配8MB接收缓冲区
+		 * 4. 设置协议类型为TCP
+		 * 5. 初始化Socket信号连接
+		 */
 		Connection::Connection(rtc::Thread* network_thread, rtc::Socket* session)
 			: network_thread_(network_thread)
 			, udp_session_(nullptr)
@@ -57,6 +85,13 @@ namespace  libmedia_transfer_protocol {
 			InitSocketSignals();
 		}
 
+		/**
+		 * 析构函数实现
+		 * 
+		 * 清理流程：
+		 * 1. 断开所有Socket信号连接
+		 * 2. 释放Socket资源（由外部管理）
+		 */
 		Connection::~Connection()
 		{
 			LIBNETWORK_LOG_T_F(LS_INFO) << "remote:" << remote_address_.ToString();
@@ -68,6 +103,16 @@ namespace  libmedia_transfer_protocol {
 				socket_->SignalWriteEvent.disconnect(this);
 			}
 		}
+			/**
+		 * 关闭连接实现
+		 * 
+		 * 处理流程：
+		 * 1. 投递关闭任务到网络线程
+		 * 2. 设置available_write为false，禁止继续发送
+		 * 3. 调用Socket的Close方法
+		 * 
+		 * 注意：异步执行，立即返回
+		 */
 		void Connection::Close()
 		{
 
@@ -79,6 +124,17 @@ namespace  libmedia_transfer_protocol {
 				}
 				});
 		}
+		
+		/**
+		 * 同步发送数据实现
+		 * 
+		 * 处理流程：
+		 * 1. 根据协议类型选择发送方式
+		 * 2. UDP：使用SendTo发送到远程地址
+		 * 3. TCP：使用Send直接发送
+		 * 
+		 * 注意：此方法在当前线程执行，可能不是网络线程
+		 */
 		void Connection::AyncSend(const uint8_t* data, int32_t size)
 		{
 
@@ -93,6 +149,21 @@ namespace  libmedia_transfer_protocol {
 
 
 		}
+		
+		/**
+		 * 异步发送数据实现
+		 * 
+		 * 处理流程：
+		 * 1. 检查available_write标志
+		 * 2. 投递发送任务到网络线程
+		 * 3. 在网络线程中再次检查available_write
+		 * 4. 根据协议类型执行发送
+		 * 
+		 * 优点：
+		 * - 线程安全（在网络线程执行）
+		 * - 使用移动语义避免数据拷贝
+		 * - 双重检查避免关闭后发送
+		 */
 		void Connection::AsyncSend(rtc::CopyOnWriteBuffer&& data)
 		{
 			if (!available_write)
@@ -118,6 +189,15 @@ namespace  libmedia_transfer_protocol {
 				}
 			});
 		}
+			/**
+		 * 初始化Socket信号连接
+		 * 
+		 * 将Socket的四个事件信号连接到对应的处理函数：
+		 * - SignalCloseEvent -> OnClose
+		 * - SignalConnectEvent -> OnConnect
+		 * - SignalReadEvent -> OnRead
+		 * - SignalWriteEvent -> OnWrite
+		 */
 		void Connection::InitSocketSignals()
 		{
 			if (socket_)
@@ -129,16 +209,51 @@ namespace  libmedia_transfer_protocol {
 			}
 
 		}
+		
+		/**
+		 * Socket连接成功回调
+		 * 
+		 * 当TCP连接建立成功时触发（UDP不会触发）
+		 */
 		void Connection::OnConnect(rtc::Socket* socket)
 		{
 			LIBNETWORK_LOG_T_F(LS_INFO) << "";
 		}
+		
+		/**
+		 * Socket关闭回调
+		 * 
+		 * 处理流程：
+		 * 1. 设置available_write为false
+		 * 2. 触发SignalOnClose信号通知上层
+		 * 
+		 * 触发场景：
+		 * - 对端关闭连接
+		 * - 本地调用Close()
+		 * - 网络错误导致连接断开
+		 */
 		void Connection::OnClose(rtc::Socket* socket, int ret)
 		{
 			LIBNETWORK_LOG_T_F(LS_INFO) << "";
 			available_write = false;
 			SignalOnClose(this);
 		}
+		
+		/**
+		 * Socket可读回调
+		 * 
+		 * 处理流程：
+		 * 1. 创建临时缓冲区（8MB）
+		 * 2. 循环读取数据直到：
+		 *    - 无数据可读（bytes <= 0）
+		 *    - 缓冲区已满
+		 * 3. 触发SignalOnRecv信号传递数据
+		 * 
+		 * 优化：
+		 * - 一次性读取所有可用数据
+		 * - 避免多次系统调用
+		 * - 使用CopyOnWriteBuffer减少拷贝
+		 */
 		void Connection::OnRead(rtc::Socket* socket)
 		{
 			//LIBTCP_LOG_T_F(LS_INFO) << "";
@@ -162,23 +277,55 @@ namespace  libmedia_transfer_protocol {
 			SignalOnRecv(this, rtc::CopyOnWriteBuffer(buffer));
 
 		}
+		
+		/**
+		 * Socket可写回调
+		 * 
+		 * 当Socket从不可写变为可写时触发。
+		 * 设置available_write为true，允许继续发送数据。
+		 */
 		void Connection::OnWrite(rtc::Socket* socket)
 		{
 			LIBNETWORK_LOG_T_F(LS_INFO) << "";
 			available_write = true;
 		}
+			/**
+		 * 设置上下文对象（拷贝版本）
+		 * 
+		 * 将指定类型的上下文对象关联到此连接。
+		 * 使用shared_ptr管理生命周期。
+		 */
 		void Connection::SetContext(int type, const std::shared_ptr<void>& context)
 		{
 			contexts_[type] = context;
 		}
+		
+		/**
+		 * 设置上下文对象（移动版本）
+		 * 
+		 * 使用移动语义避免引用计数增加，性能更优。
+		 */
 		void Connection::SetContext(int type, std::shared_ptr<void>&& context)
 		{
 			contexts_[type] = std::move(context);
 		}
+		
+		/**
+		 * 清除指定类型的上下文
+		 * 
+		 * 释放指定类型的上下文对象。
+		 * 如果没有其他引用，对象将被销毁。
+		 */
 		void Connection::ClearContext(int type)
 		{
 			contexts_[type].reset();
 		}
+		
+		/**
+		 * 清除所有上下文
+		 * 
+		 * 释放所有关联的上下文对象。
+		 */
 		void Connection::ClearContext()
 		{
 			contexts_.clear();
