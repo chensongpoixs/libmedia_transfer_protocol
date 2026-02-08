@@ -129,7 +129,7 @@ rtp_rtcp/rtp_header_extension_map.cpp
  
 add_library(${PROJECT_NAME}   STATIC  ${libmedia_transfer_protocol_source})
  
-add_subdirectory(libflv/test)
+
  
 
 
@@ -166,3 +166,15 @@ set_property(TARGET ${PROJECT_NAME}  				PROPERTY FOLDER libmedia)
 # 1. 长度至少12字节
 # 2. 第一个字节为[128,191]
 # 3. payload_type不在[63, 96]的范围内
+
+
+
+if (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    message(STATUS "current platform: windows")
+    add_subdirectory(libflv/test)
+elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
+	message(STATUS "current platform: unix")
+    
+
+
+endif()

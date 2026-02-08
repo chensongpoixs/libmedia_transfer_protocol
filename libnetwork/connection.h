@@ -23,15 +23,12 @@
 
 #include <algorithm>
 #include "rtc_base/third_party/sigslot/sigslot.h"
- 
+
 #include "libp2p_peerconnection/connection_context.h"
 #include <atomic>
 #include "libmedia_transfer_protocol/libnetwork/tcp_server.h"
 #include "libmedia_transfer_protocol/libnetwork/udp_server.h"
 #include <unordered_map>
-#include <queue>
-#include <mutex>
-#include "rtc_base/copy_on_write_buffer.h"
 
 
 
@@ -50,8 +47,8 @@ namespace  libmedia_transfer_protocol {
 		};
 
 
-		enum class  ProtocolType{
-			ProtocolUdp= 1,
+		enum class  ProtocolType {
+			ProtocolUdp = 1,
 			ProtocolTcp
 		};
 		//typedef    UdpServer    UdpSession;
@@ -59,23 +56,17 @@ namespace  libmedia_transfer_protocol {
 		{
 		public:
 			//explicit Connection();
-			 Connection(rtc::Thread* network_thread, rtc::AsyncPacketSocket * session, const rtc::SocketAddress& addr);
-			  Connection(rtc::Thread* network_thread, rtc::Socket * session);
+			Connection(rtc::Thread* network_thread, rtc::AsyncPacketSocket* session, const rtc::SocketAddress& addr);
+			Connection(rtc::Thread* network_thread, rtc::Socket* session);
 			virtual ~Connection();
 		public:
 
 			void  Close();
 
-			void AyncSend(const uint8_t *data, int32_t  size);
-		
-			void AsyncSend(rtc::CopyOnWriteBuffer &&data);
-			
-			// 同步发送方法（TCP/UDP 通用）
-			void Send(const rtc::CopyOnWriteBuffer& data);
-			void Send(const uint8_t* data, int32_t size);
-			
-			rtc::Socket*   GetSocket() const { return socket_; }
-			const rtc::SocketAddress& GetRemoteAddress() const { return remote_address_; }
+			void AyncSend(const uint8_t* data, int32_t  size);
+
+			void AsyncSend(rtc::CopyOnWriteBuffer&& data);
+			rtc::Socket* GetSocket() const { return socket_; }
 
 
 			sigslot::signal1<Connection*> SignalOnClose;
@@ -83,16 +74,16 @@ namespace  libmedia_transfer_protocol {
 			sigslot::signal1<Connection*> SignalOnSent;
 		public:
 
-			
+
 		public:
 		private:
-			
-		public:
-			 
-			 
 
-			void SetContext(int type, const std::shared_ptr<void> &context);
-			void SetContext(int type, std::shared_ptr<void> &&context);
+		public:
+
+
+
+			void SetContext(int type, const std::shared_ptr<void>& context);
+			void SetContext(int type, std::shared_ptr<void>&& context);
 			template <typename T> std::shared_ptr<T> GetContext(int type) const
 			{
 				auto iter = contexts_.find(type);
@@ -111,28 +102,17 @@ namespace  libmedia_transfer_protocol {
 			void OnClose(rtc::Socket* socket, int ret);
 			void OnRead(rtc::Socket* socket);
 			void OnWrite(rtc::Socket* socket);
-			
-			// TCP 发送缓冲区管理
-			void TrySendPendingData();
-			void AddToSendQueue(const rtc::CopyOnWriteBuffer& data);
-			
 		private:
-			rtc::Thread        *   network_thread_;
+			rtc::Thread* network_thread_;
 			//UdpSession *        udp_session_;
-			rtc::AsyncPacketSocket  * udp_session_;
+			rtc::AsyncPacketSocket* udp_session_;
 			//TcpSession*        tcp_session_;
-			rtc::Socket*  socket_;
+			rtc::Socket* socket_;
 			rtc::SocketAddress  remote_address_;
 			rtc::Buffer  recv_buffer_;
 			int32_t  recv_buffer_size_ = 0;
 			std::atomic_bool         available_write;
 			ProtocolType        protocol_type_ = ProtocolType::ProtocolUdp;
-
-			// TCP 发送队列（当 socket 不可写时缓冲数据）
-			std::queue<rtc::CopyOnWriteBuffer> send_queue_;
-			std::mutex send_queue_lock_;
-			static constexpr size_t kMaxSendQueueSize = 1024 * 1024 * 10;  // 最大发送队列大小 10MB
-			size_t send_queue_total_size_ = 0;
 
 			std::unordered_map<uint32_t, std::shared_ptr<void>>     contexts_;
 		};

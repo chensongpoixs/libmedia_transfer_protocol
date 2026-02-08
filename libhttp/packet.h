@@ -40,6 +40,7 @@
 
 
 #include <assert.h>
+#include <memory>
 
 namespace  libmedia_transfer_protocol {
 	namespace libhttp

@@ -30,7 +30,7 @@
 #include "libmedia_codec/frame_object.h"
 #include "libmedia_transfer_protocol/rtp_frame_reference_finder.h"
 #include "rtc_base/numerics/sequence_number_util.h"
-
+#ifdef _MSC_VER
 namespace libmedia_transfer_protocol {
 
 class RtpVp8RefFinder {
@@ -82,5 +82,5 @@ class RtpVp8RefFinder {
 };
 
 }  // namespace webrtc
-
+#endif // #ifdef _MSC_VER
 #endif  // MODULES_VIDEO_CODING_RTP_VP8_REF_FINDER_H_

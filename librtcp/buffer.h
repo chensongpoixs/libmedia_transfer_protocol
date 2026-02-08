@@ -1,21 +1,36 @@
 ﻿/******************************************************************************
-*  Copyright (c) 2025 The CRTC project authors . All Rights Reserved.
-*
-*  Please visit https://chensongpoixs.github.io for detail
-*
-*  Use of this source code is governed by a BSD-style license
-*  that can be found in the LICENSE file in the root of the source
-*  tree. An additional intellectual property rights grant can be found
-*  in the file PATENTS.  All contributing project authors may
-*  be found in the AUTHORS file in the root of the source tree.
-******************************************************************************/
-/*****************************************************************************
-                  Author: chensong
-                  date:  2025-11-09
+ *  Copyright (c) 2025 The CRTC project authors . All Rights Reserved.
+ *
+ *  Please visit https://chensongpoixs.github.io for detail
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
+ ******************************************************************************/
+ /***********************************************************************************************
+ created: 		2025-11-09
 
-                TODO: 2025-11-09 chensong   rtcp
+ author:			chensong
 
-******************************************************************************/
+ purpose:		Buffer Management Classes for RTCP
+ 输赢不重要，答案对你们有什么意义才重要。
+
+ 光阴者，百代之过客也，唯有奋力奔跑，方能生风起时，是时代造英雄，英雄存在于时代。或许世人道你轻狂，可你本就年少啊。 看护好，自己的理想和激情。
+
+
+ 我可能会遇到很多的人，听他们讲好2多的故事，我来写成故事或编成歌，用我学来的各种乐器演奏它。
+ 然后还可能在一个国家遇到一个心仪我的姑娘，她可能会被我帅气的外表捕获，又会被我深邃的内涵吸引，在某个下雨的夜晚，她会全身淋透然后要在我狭小的住处换身上的湿衣服。
+ 3小时候后她告诉我她其实是这个国家的公主，她愿意向父皇求婚。我不得已告诉她我是穿越而来的男主角，我始终要回到自己的世界。
+ 然后我的身影慢慢消失，我看到她眼里的泪水，心里却没有任何痛苦，我才知道，原来我的心被丢掉了，我游历全世界的原因，就是要找回自己的本心。
+ 于是我开始有意寻找各种各样失去心的人，我变成一块砖头，一颗树，一滴水，一朵白云，去听大家为什么会失去自己的本心。
+ 我发现，刚出生的宝宝，本心还在，慢慢的，他们的本心就会消失，收到了各种黑暗之光的侵蚀。
+ 从一次争论，到嫉妒和悲愤，还有委屈和痛苦，我看到一只只无形的手，把他们的本心扯碎，蒙蔽，偷走，再也回不到主人都身边。
+ 我叫他本心猎手。他可能是和宇宙同在的级别 但是我并不害怕，我仔细回忆自己平淡的一生 寻找本心猎手的痕迹。
+ 沿着自己的回忆，一个个的场景忽闪而过，最后发现，我的本心，在我写代码的时候，会回来。
+ 安静，淡然，代码就是我的一切，写代码就是我本心回归的最好方式，我还没找到本心猎手，但我相信，顺着这个线索，我一定能顺藤摸瓜，把他揪出来。
+ ************************************************************************************************/
 
 
 #ifndef LIBRTCP_RTCP_BUFFER_H_
@@ -28,31 +43,76 @@
 #include <functional> 
 #include <atomic>
 #include <stdexcept>
+#include <cstring>
 
 
 namespace libmedia_transfer_protocol {
     namespace librtcp { 
 
-
+        /**
+        *  @author chensong
+        *  @date 2025-11-09
+        *  @brief 对象统计模板类（Object Statistics Template）
+        *  
+        *  该模板类用于统计特定类型对象的实例数量。通过继承该类，可以自动跟踪
+        *  对象的创建和销毁，用于内存泄漏检测和性能分析。
+        *  
+        *  工作原理：
+        *  - 构造函数中递增计数器
+        *  - 析构函数中递减计数器
+        *  - 使用原子操作保证线程安全
+        *  
+        *  @tparam C 需要统计的类类型
+        *  @note 使用原子变量保证线程安全
+        *  @note 需要配合StatisticImp宏定义静态计数器
+        */
         template <class C>
         class ObjectStatistic {
         public:
+            /**
+            *  @brief 构造函数，递增对象计数器
+            */
             ObjectStatistic() {
                 ++getCounter();
             }
 
+            /**
+            *  @brief 析构函数，递减对象计数器
+            */
             ~ObjectStatistic() {
                 --getCounter();
             }
 
+            /**
+            *  @brief 获取当前对象实例数量
+            *  @return 当前存活的对象数量
+            */
             static size_t count() {
                 return getCounter().load();
             }
 
         private:
+            /**
+            *  @brief 获取静态计数器引用
+            *  @return 原子计数器的引用
+            *  @note 需要在cpp文件中使用StatisticImp宏实现
+            */
             static std::atomic<size_t>& getCounter();
         };
 
+        /**
+        *  @brief 对象统计实现宏
+        *  
+        *  该宏用于在cpp文件中实现ObjectStatistic模板类的静态计数器。
+        *  为每个需要统计的类型生成独立的静态原子变量。
+        *  
+        *  使用示例：
+        *  @code
+        *  // 在cpp文件中
+        *  StatisticImp(Buffer)
+        *  StatisticImp(BufferRaw)
+        *  @endcode
+        */
 #define StatisticImp(Type)  \
     template<> \
     std::atomic<size_t>& ObjectStatistic<Type>::getCounter(){ \
@@ -62,14 +122,39 @@ namespace libmedia_transfer_protocol {
 
 
 
+        /**
+        *  @brief 指针类型判断模板（Pointer Type Trait）
+        *  
+        *  该模板用于编译期判断类型是否为指针类型（包括原始指针和智能指针）。
+        *  用于BufferOffset类的模板参数推导。
+        */
 template <typename T> struct is_pointer : public std::false_type {};
 template <typename T> struct is_pointer<std::shared_ptr<T> > : public std::true_type {};
 template <typename T> struct is_pointer<std::shared_ptr<T const> > : public std::true_type {};
 template <typename T> struct is_pointer<T*> : public std::true_type {};
 template <typename T> struct is_pointer<const T*> : public std::true_type {};
 
-//缓存基类  [AUTO-TRANSLATED:d130ab72]
-//Cache base class
+/**
+*  @author chensong
+*  @date 2025-11-09
+*  @brief 缓存基类（Buffer Base Class）
+*  
+*  Buffer是所有缓存类的抽象基类，定义了缓存对象的基本接口。
+*  该类提供了数据访问、大小查询、字符串转换等基本功能。
+*  
+*  设计模式：
+*  - 使用抽象基类定义接口
+*  - 派生类实现具体的内存管理策略
+*  - 支持智能指针管理生命周期
+*  
+*  派生类：
+*  - BufferOffset: 偏移缓存，支持零拷贝的数据视图
+*  - BufferRaw: 原始指针缓存，手动管理内存
+*  - BufferLikeString: 类字符串缓存，支持字符串操作
+*  
+*  @note 该类不可拷贝，只能通过智能指针传递
+*  @note 使用ObjectStatistic统计对象数量
+*/
 class Buffer /*: public noncopyable*/ {
 public:
     using Ptr = std::shared_ptr<Buffer>;
@@ -77,22 +162,37 @@ public:
     Buffer() = default;
     virtual ~Buffer() = default;
 
-    //返回数据长度  [AUTO-TRANSLATED:955f731c]
-    //Return data length
+    /**
+    *  @brief 获取数据指针
+    *  @return 指向缓存数据的指针
+    */
     virtual char *data() const = 0;
+
+    /**
+    *  @brief 获取数据大小
+    *  @return 有效数据的字节数
+    */
     virtual size_t size() const = 0;
 
+    /**
+    *  @brief 转换为字符串
+    *  @return 包含缓存数据的字符串对象
+    */
     virtual std::string toString() const {
         return std::string(data(), size());
     }
 
+    /**
+    *  @brief 获取容量大小
+    *  @return 缓存的总容量（字节数）
+    *  @note 默认实现返回size()，派生类可以重写
+    */
     virtual size_t getCapacity() const {
         return size();
     }
 
 private:
-    //对象个数统计  [AUTO-TRANSLATED:3b43e8c2]
-    //Object count statistics
+    // 对象个数统计
     ObjectStatistic<Buffer> _statistic;
 };
 

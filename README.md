@@ -156,7 +156,9 @@ libmedia_transfer_protocol/
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/chensongpoixs/libmedia_transfer_protocol
+
+   git clone https://github.com/chensongpoixs/libmedia_transfer_protocol.git
+   
    cd libmedia_transfer_protocol
    ```
 

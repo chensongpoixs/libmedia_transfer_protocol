@@ -35,6 +35,8 @@ purpose:		http_parser
 #include "cpsi_writer.h"
 #include "libmedia_transfer_protocol/rtp_rtcp/byte_io.h"
 #include "rtc_base/crc32.h"
+#include <cstring>
+
 namespace libmedia_transfer_protocol
 {
 	namespace libmpeg

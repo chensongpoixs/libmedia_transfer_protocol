@@ -19,7 +19,7 @@
 
 
 #include "libmedia_transfer_protocol/rtp_seq_num_only_ref_finder.h"
-
+#ifdef _MSC_VER
 #include <utility>
 
 #include "rtc_base/logging.h"
@@ -194,3 +194,5 @@ void RtpSeqNumOnlyRefFinder::ClearTo(uint16_t seq_num) {
 }
 
 }  // namespace webrtc
+
+#endif // #ifdef _MSC_VER

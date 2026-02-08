@@ -23,7 +23,15 @@
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
+#ifdef _MSC_VER
 #include <WinSock2.h>
+
+#elif defined(__GNUC__) ||defined(__APPLE__)
+#else
+		// å…¶ä»–ä¸æ”¯æŒçš„ç¼–è¯‘å™¨éœ€è¦è‡ªå·±å®ç°è¿™ä¸ªæ–¹æ³•
+#error unexpected c complier (msc/gcc), Need to implement this method for demangle
+		 
+#endif
 #include "rtc_base/thread.h"
 #include "libmedia_transfer_protocol/libmedia_transfer_protocol_log.h"
 namespace libmedia_transfer_protocol {
@@ -62,7 +70,7 @@ namespace libmedia_transfer_protocol {
 				LIBRTC_LOG_T_F(LS_WARNING) << "SSL_new failed.";
 				goto error;
 			}
-			//×¢²áÊı¾İ»Øµ÷
+			//×¢ï¿½ï¿½ï¿½ï¿½ï¿½İ»Øµï¿½
 			SSL_set_ex_data(ssl_, 0, static_cast<void*>(this));
 
 			bio_read_ = BIO_new(BIO_s_mem());
@@ -187,7 +195,7 @@ namespace libmedia_transfer_protocol {
 				{
 					//MS_DEBUG_TAG(dtls, "running [role:client]");
 					LIBSSL_LOG(LS_INFO) << "running [role:client]";
-					///  ????????????????????????????? dtls ???? ½»»»Ğ­ÉÌµÄÁ÷³Ì
+					///  ????????????????????????????? dtls ???? ï¿½ï¿½ï¿½ï¿½Ğ­ï¿½Ìµï¿½ï¿½ï¿½ï¿½ï¿½
 
 					SSL_set_connect_state(this->ssl_);
 					SSL_do_handshake(this->ssl_);

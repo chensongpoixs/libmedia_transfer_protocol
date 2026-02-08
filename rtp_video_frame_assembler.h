@@ -27,7 +27,7 @@
 #include "absl/container/inlined_vector.h"
 #include "libmedia_codec/encoded_frame.h"
 #include "libmedia_transfer_protocol/rtp_rtcp/rtp_packet_received.h"
-
+#ifdef _MSC_VER
 namespace libmedia_transfer_protocol {
 // The RtpVideoFrameAssembler takes RtpPacketReceived and assembles them into
 // complete frames. A frame is considered complete when all packets of the frame
@@ -59,5 +59,5 @@ class RtpVideoFrameAssembler {
 };
 
 }  // namespace webrtc
-
+#endif // #ifdef _MSC_VER
 #endif  // API_VIDEO_RTP_VIDEO_FRAME_ASSEMBLER_H_

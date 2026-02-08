@@ -36,7 +36,7 @@ namespace libmedia_transfer_protocol
 	{
 	public:
 		explicit Muxer( );
-		~Muxer();
+		virtual ~Muxer();
 
 
 		int32_t EncodeAudio(const rtc::CopyOnWriteBuffer & frame);

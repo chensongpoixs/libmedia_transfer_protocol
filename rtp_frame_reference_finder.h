@@ -26,6 +26,7 @@
 #include <absl/container/inlined_vector.h>
 #include "libmedia_codec/frame_object.h"
 
+#ifdef _MSC_VER
 namespace libmedia_transfer_protocol {
 namespace internal {
 class RtpFrameReferenceFinderImpl;
@@ -67,5 +68,5 @@ class RtpFrameReferenceFinder {
 };
 
 }  // namespace webrtc
-
+#endif // #ifdef _MSC_VER
 #endif  // MODULES_VIDEO_CODING_RTP_FRAME_REFERENCE_FINDER_H_

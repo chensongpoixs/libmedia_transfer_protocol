@@ -41,11 +41,12 @@
 #include "libmedia_transfer_protocol/packet_buffer.h"
 #include "libmedia_transfer_protocol/rtp_frame_reference_finder.h"
 #include "rtc_base/logging.h"
-
+#ifdef _MSC_VER
 namespace libmedia_transfer_protocol {
 namespace {
 std::unique_ptr<VideoRtpDepacketizer> CreateDepacketizer(
     RtpVideoFrameAssembler::PayloadFormat payload_format) {
+      
   switch (payload_format) {
     case RtpVideoFrameAssembler::kRaw:
       return std::make_unique<VideoRtpDepacketizerRaw>();
@@ -60,6 +61,7 @@ std::unique_ptr<VideoRtpDepacketizer> CreateDepacketizer(
     case RtpVideoFrameAssembler::kGeneric:
       return std::make_unique<VideoRtpDepacketizerGeneric>();
   }
+   
   RTC_NOTREACHED();
   return nullptr;
 }
@@ -340,3 +342,5 @@ RtpVideoFrameAssembler::FrameVector RtpVideoFrameAssembler::InsertPacket(
 }
 
 }  // namespace webrtc
+
+#endif // #ifdef _MSC_VER

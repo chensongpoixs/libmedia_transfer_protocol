@@ -192,6 +192,7 @@ namespace  libmedia_transfer_protocol {
 		}
 		void HttpRequest::ParseParameters()
 		{
+#if 1
 			// 清空已有参数
 			parameters_.clear();
 			
@@ -250,6 +251,26 @@ namespace  libmedia_transfer_protocol {
 					}
 				}
 			}
+#else
+
+
+			std::vector<std::string> list;
+			rtc::split(query_, '&', &list);
+
+			for (auto const& l : list)
+			{
+				auto pos = l.find('=');
+				if (pos != std::string::npos)
+				{
+					std::string k = l.substr(0, pos);
+					std::string v = l.substr(pos + 1);
+					k = HttpUtils::Trim(k);
+					v = HttpUtils::Trim(v);
+					SetParameter(std::move(k), std::move(v));
+				}
+			}
+
+#endif 
 		}
 
 		void HttpRequest::SetMethod(const std::string &method)
