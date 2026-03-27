@@ -127,7 +127,7 @@ namespace  libmedia_transfer_protocol {
 		 * 
 		 * 调用Connection的Close方法，异步关闭连接
 		 */
-		void TcpServer::CloseSession(Connection *conn)
+		void TcpServer::CloseSession(libmedia_transfer_protocol::libnetwork::Connection *conn)
 		{
 			conn->Close();
 		}
@@ -176,8 +176,9 @@ namespace  libmedia_transfer_protocol {
 		 * Connection数据接收回调实现
 		 * 
 		 * 转发Connection的数据接收事件到SignalOnRecv信号
+		 * void OnSessionRecv(Connection*  conn, const rtc::CopyOnWriteBuffer & data);
 		 */
-		void TcpServer::OnSessionRecv(Connection * conn, const rtc::CopyOnWriteBuffer & data)
+		void TcpServer::OnSessionRecv(libmedia_transfer_protocol::libnetwork::Connection * conn, const rtc::CopyOnWriteBuffer & data)
 		{
 			SignalOnRecv(conn, data);
 		}
@@ -193,7 +194,7 @@ namespace  libmedia_transfer_protocol {
 		 * 5. 释放Connection对象
 		 * 6. 从tcp_sessions_中移除
 		 */
-		void TcpServer::OnSessionClose(Connection*  conn)
+		void TcpServer::OnSessionClose(libmedia_transfer_protocol::libnetwork::Connection*  conn)
 		{
 			network_thread()->PostTask(RTC_FROM_HERE, [this, conn]() {
 				//LIBTCP_LOG(LS_INFO) << "";
@@ -287,7 +288,7 @@ namespace  libmedia_transfer_protocol {
 				return;
 			}
 			LIBNETWORK_LOG_T_F(LS_INFO) << "tcp new client accept :  " << address.ToString();
-			std::unique_ptr<libnetwork::Connection>  tcp_session = std::make_unique<libnetwork::Connection>(network_thread(),  client );
+			std::unique_ptr<libnetwork::Connection>  tcp_session = std::make_unique<libmedia_transfer_protocol::libnetwork::Connection>(network_thread(),  client );
 			//http_session->RegisterDecodeCompleteCallback(callback_);
 			tcp_session->SignalOnRecv.connect(this, &TcpServer::OnSessionRecv);
 			tcp_session->SignalOnClose.connect(this, &TcpServer::OnSessionClose);

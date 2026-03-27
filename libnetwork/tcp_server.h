@@ -75,6 +75,8 @@
 namespace  libmedia_transfer_protocol {
 	namespace libnetwork
 	{
+		//class libmedia_transfer_protocol::libnetwork::Connection;
+		class Connection;
 			/**
 		 * @class TcpServer
 		 * @brief TCP服务器类 - 管理多个TCP客户端连接
@@ -212,7 +214,7 @@ namespace  libmedia_transfer_protocol {
 			 * 
 			 * 调用Connection的Close方法，异步关闭连接
 			 */
-			void CloseSession(Connection *conn);
+			void CloseSession(libmedia_transfer_protocol::libnetwork::Connection *conn);
 			
 			/**
 			 * @brief 关闭指定Socket
@@ -230,7 +232,7 @@ namespace  libmedia_transfer_protocol {
 			 * 
 			 * 当有新客户端连接时触发，此时Connection已创建并初始化
 			 */
-			sigslot::signal1<Connection*> SignalOnNewConnection;
+			sigslot::signal1<libmedia_transfer_protocol::libnetwork::Connection*> SignalOnNewConnection;
 			
 			/**
 			 * @brief 数据接收信号
@@ -239,7 +241,7 @@ namespace  libmedia_transfer_protocol {
 			 * 
 			 * 当连接接收到数据时触发
 			 */
-			sigslot::signal2<Connection*, const rtc::CopyOnWriteBuffer&> SignalOnRecv;
+			sigslot::signal2<libmedia_transfer_protocol::libnetwork::Connection*, const rtc::CopyOnWriteBuffer&> SignalOnRecv;
 			
 			/**
 			 * @brief 数据发送完成信号
@@ -247,7 +249,7 @@ namespace  libmedia_transfer_protocol {
 			 * 
 			 * 当数据发送完成时触发
 			 */
-			sigslot::signal1<Connection*> SignalOnSent;
+			sigslot::signal1<libmedia_transfer_protocol::libnetwork::Connection*> SignalOnSent;
 			
 			/**
 			 * @brief 连接销毁信号
@@ -255,7 +257,7 @@ namespace  libmedia_transfer_protocol {
 			 * 
 			 * 当连接关闭并即将销毁时触发，此时Connection仍然有效
 			 */
-			sigslot::signal1<Connection*> SignalOnDestory;
+			sigslot::signal1<libmedia_transfer_protocol::libnetwork::Connection*> SignalOnDestory;
 			
 
 			public:
@@ -341,7 +343,7 @@ namespace  libmedia_transfer_protocol {
 			 * 
 			 * 转发Connection的数据接收事件到SignalOnRecv信号
 			 */
-			void OnSessionRecv(Connection*  conn, const rtc::CopyOnWriteBuffer & data);
+			void OnSessionRecv(libmedia_transfer_protocol::libnetwork::Connection*  conn, const rtc::CopyOnWriteBuffer & data);
 			
 			/**
 			 * @brief Connection关闭回调
@@ -354,7 +356,7 @@ namespace  libmedia_transfer_protocol {
 			 * 4. 从tcp_sessions_中移除
 			 * 5. 释放Connection对象
 			 */
-			void OnSessionClose(Connection*  conn);
+			void OnSessionClose(libmedia_transfer_protocol::libnetwork::Connection*  conn);
 			
 		public:
 			// ========== Socket事件处理 ==========
@@ -405,7 +407,7 @@ namespace  libmedia_transfer_protocol {
 			rtc::SocketAddress server_address_;                                         ///< 服务器监听地址
 			std::unique_ptr<rtc::Socket> control_socket_;                               ///< 监听Socket
 			rtc::AsyncResolver* resolver_;                                              ///< 异步DNS解析器（未使用）
-			std::map<rtc::Socket*, std::unique_ptr<libnetwork::Connection>> tcp_sessions_;  ///< TCP会话映射表（Socket -> Connection）
+			std::map<rtc::Socket*, std::unique_ptr<libmedia_transfer_protocol::libnetwork::Connection>> tcp_sessions_;  ///< TCP会话映射表（Socket -> Connection）
 			std::unordered_map<int, std::shared_ptr<void>> contexts_;                   ///< 服务器级别的上下文映射表
 		};
 	}

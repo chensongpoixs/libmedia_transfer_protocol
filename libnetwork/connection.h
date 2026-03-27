@@ -230,7 +230,7 @@ namespace  libmedia_transfer_protocol {
 			 * 
 			 * 当连接被关闭时触发（主动关闭或对端关闭）
 			 */
-			sigslot::signal1<Connection*> SignalOnClose;
+			sigslot::signal1<libmedia_transfer_protocol::libnetwork::Connection*> SignalOnClose;
 			
 			/**
 			 * @brief 数据接收信号
@@ -239,7 +239,7 @@ namespace  libmedia_transfer_protocol {
 			 * 
 			 * 当接收到数据时触发，数据已完整读取到缓冲区
 			 */
-			sigslot::signal2<Connection*, const rtc::CopyOnWriteBuffer&> SignalOnRecv;
+			sigslot::signal2<libmedia_transfer_protocol::libnetwork::Connection*, const rtc::CopyOnWriteBuffer&> SignalOnRecv;
 			
 			/**
 			 * @brief 数据发送完成信号
@@ -247,7 +247,7 @@ namespace  libmedia_transfer_protocol {
 			 * 
 			 * 当数据发送完成且Socket可写时触发
 			 */
-			sigslot::signal1<Connection*> SignalOnSent;
+			sigslot::signal1<libmedia_transfer_protocol::libnetwork::Connection*> SignalOnSent;
 		public:
 
 
