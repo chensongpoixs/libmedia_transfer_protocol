@@ -141,9 +141,11 @@ namespace libmedia_transfer_protocol {
 			virtual ~RtcSdp();
 
 		public:
+
 			/** 设置SDP类型 */
 			void SetSdpType(RtcSdpType  rtc_sdp_type);
 			
+			RtcSdpType GetSdpType() const;
 			/** 解析SDP Offer */
 			bool Decode(const std::string &sdp);
 			

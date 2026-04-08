@@ -126,6 +126,10 @@ namespace libmedia_transfer_protocol {
 		{
 			rtc_sdp_type_ = rtc_sdp_type;
 		}
+		RtcSdpType RtcSdp::GetSdpType() const
+		{
+			return rtc_sdp_type_;
+		}
 		bool RtcSdp::Decode(const std::string &sdp)
 		{
 			std::vector<std::string>    list;
@@ -578,7 +582,8 @@ namespace libmedia_transfer_protocol {
 
 				ss << "a=rtpmap:" << video_payload_rtx_type_ << " rtx/90000\n";
 				ss << "a=fmtp:" << video_payload_rtx_type_ << " apt=" << video_payload_type_ << "\n";
-				ss << "a=fmtp:" << video_payload_type_ << " x-google-min-bitrate=8000; x-google-max-bitrate=10000" << "\n";
+				//ss << "a=fmtp:" << video_payload_type_ << " x-google-min-bitrate=8000; x-google-max-bitrate=10000" << "\n";
+				ss << "a=fmtp:" << video_payload_type_ << " x-google-min-bitrate=6000; x-google-start-bitrate=4000; x-google-max-bitrate=10000\n";
 				ss << "a=rtcp-fb:" << video_payload_type_ << " ccm fir\n";
 				ss << "a=rtcp-fb:" << video_payload_type_ << " goog-remb\n";
 				ss << "a=rtcp-fb:" << video_payload_type_ << " nack\n";

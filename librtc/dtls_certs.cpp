@@ -233,7 +233,7 @@ namespace libmedia_transfer_protocol {
 			// Set SSL info callback.
 			//SSL_CTX_set_info_callback(ssl_context_, onSslInfo);
 			SSL_CTX_set_verify(ssl_ctx_, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, OnSslCertificateVerify);
-			//×´Ì¬ÇÐ»»  »Øµ÷ÓÃº¯Êý
+			//×´Ì¬ï¿½Ð»ï¿½  ï¿½Øµï¿½ï¿½Ãºï¿½ï¿½ï¿½
 			SSL_CTX_set_info_callback(ssl_ctx_, OnSslInfo);
 			// Set ciphers.
 			ret = SSL_CTX_set_cipher_list(
@@ -350,7 +350,7 @@ namespace libmedia_transfer_protocol {
 				hexFingerprint[(size * 3) - 1] = '\0';
 
 				//MS_DEBUG_TAG(dtls, "%-7s fingerprint: %s", algorithmString.c_str(), hexFingerprint);
-				LIBSSL_LOG_T_F(LS_ERROR) << algorithmString << " fingerprint:" << hexFingerprint;
+				LIBSSL_LOG_T_F(LS_INFO) << algorithmString << " fingerprint:" << hexFingerprint;
 				// Store it in the vector.
 				libssl::Fingerprint fingerprint;
 

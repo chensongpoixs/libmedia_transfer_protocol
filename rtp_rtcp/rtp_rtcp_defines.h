@@ -71,7 +71,7 @@ enum RTPExtensionType : int {
   kRtpExtensionAbsoluteSendTime = kRtpExtensionAudioLevel,
   kRtpExtensionAbsoluteCaptureTime = kRtpExtensionInbandComfortNoise+2,
   kRtpExtensionVideoRotation,
-  kRtpExtensionTransportSequenceNumber = kRtpExtensionCsrcAudioLevel,    // transport-cc ½ÓÊÜ¶Ë ¸ù¾Ý rtp°üÍ· transport_sequence_number 
+  kRtpExtensionTransportSequenceNumber = kRtpExtensionCsrcAudioLevel,    // transport-cc ï¿½ï¿½ï¿½Ü¶ï¿½ ï¿½ï¿½ï¿½ï¿½ rtpï¿½ï¿½Í· transport_sequence_number 
   kRtpExtensionTransportSequenceNumber02 = kRtpExtensionVideoRotation+2,
   kRtpExtensionPlayoutDelay,
   kRtpExtensionVideoContentType,
@@ -153,7 +153,7 @@ struct RTCPReportBlock {
   uint32_t sender_ssrc;  // SSRC of sender of this report.
   uint32_t source_ssrc;  // SSRC of the RTP packet sender.
   uint8_t fraction_lost;
-  //ÀÛ¼Æµô°üÊý
+  //ï¿½Û¼Æµï¿½ï¿½ï¿½ï¿½
   int32_t packets_lost;  // 24 bits valid.
   uint32_t extended_highest_sequence_number;
   uint32_t jitter;
@@ -163,11 +163,11 @@ struct RTCPReportBlock {
 
 	  std::stringstream cmd;
 	  cmd << "sender_ssrc : " << sender_ssrc;
-	  cmd << "\r\n source_ssrc£º" << source_ssrc;
-	  cmd << "\r\n fraction_lost£º" << fraction_lost;
-	  cmd << "\r\n extended_highest_sequence_number£º" << extended_highest_sequence_number;
-	  cmd << "\r\n last_sender_report_timestamp£º" << last_sender_report_timestamp;
-	  cmd << "\r\n delay_since_last_sender_report£º" << delay_since_last_sender_report;
+	  cmd << "\r\n source_ssrcï¿½ï¿½" << source_ssrc;
+	  cmd << "\r\n fraction_lostï¿½ï¿½" << fraction_lost;
+	  cmd << "\r\n extended_highest_sequence_numberï¿½ï¿½" << extended_highest_sequence_number;
+	  cmd << "\r\n last_sender_report_timestampï¿½ï¿½" << last_sender_report_timestamp;
+	  cmd << "\r\n delay_since_last_sender_reportï¿½ï¿½" << delay_since_last_sender_report;
  
 	  return cmd.str();
   }
@@ -265,7 +265,7 @@ class NetworkStateEstimateObserver {
   virtual void OnRemoteNetworkEstimate(libice::NetworkStateEstimate estimate) = 0;
   virtual ~NetworkStateEstimateObserver() = default;
 };
-// ·¢ËÍ¶Ë¼ÇÂ¼·¢ËÍrtpÐÅÏ¢ ºÍ´¦Àí½ÓÊÜ¶Ëfeedback°ü´¦Àí
+// ï¿½ï¿½ï¿½Í¶Ë¼ï¿½Â¼ï¿½ï¿½ï¿½ï¿½rtpï¿½ï¿½Ï¢ ï¿½Í´ï¿½ï¿½ï¿½ï¿½ï¿½Ü¶ï¿½feedbackï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 class TransportFeedbackObserver {
  public:
   TransportFeedbackObserver() {}

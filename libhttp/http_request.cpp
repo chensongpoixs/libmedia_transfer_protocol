@@ -59,6 +59,26 @@ namespace  libmedia_transfer_protocol {
 		{
 
 		}
+		std::shared_ptr< HttpRequest> HttpRequest::NewHttp200Response()
+		{
+			auto res = std::make_shared<HttpRequest>(false);
+			res->SetStatusCode(200);
+			res->AddHeader("User-Agent", "GbMediaServer");
+			res->AddHeader("Access-Control-Allow-Origin", "*");
+			res->AddHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+			res->AddHeader("Allow", "POST, GET, OPTIONS");
+			res->AddHeader("Access-Control-Allow-Headers", "content-type");
+			res->SetStatusCode(200);
+			//res->AddHeader("server", "GbMediaServer");
+			//res->AddHeader("content-length", std::to_string(content.size()));
+			//res->AddHeader("content-type", "application/json");
+			//res->AddHeader("Access-Control-Allow-Origin", "*");
+			//res->AddHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+			//res->AddHeader("Allow", "POST, GET, OPTIONS");
+			//res->AddHeader("Access-Control-Allow-Headers", "content-type");
+			res->AddHeader("Connection", "close");
+			return res;
+		}
 		std::shared_ptr< HttpRequest> HttpRequest::NewHttp400Response()
 		{
 			auto res = std::make_shared<HttpRequest>(false);

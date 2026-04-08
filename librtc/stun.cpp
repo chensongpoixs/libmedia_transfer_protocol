@@ -130,7 +130,7 @@ namespace libmedia_transfer_protocol {
 			//stun_length += (4 + user_name_.size() + (uint16_t)padding_bytes);
 			ByteWriter<uint16_t>::WriteBigEndian(data + stun_length, (uint16_t)kStunAttrXorMappedAddress);
 			stun_length += 2;
-			ByteWriter<uint16_t>::WriteBigEndian(data + stun_length, (uint16_t)8);       //ÊôÐÔ³¤¶È
+			ByteWriter<uint16_t>::WriteBigEndian(data + stun_length, (uint16_t)8);       //ï¿½ï¿½ï¿½Ô³ï¿½ï¿½ï¿½
 			stun_length += 2;
 			ByteWriter<uint8_t>::WriteBigEndian(data + stun_length, (uint8_t)0);
 			stun_length += 1;
@@ -151,7 +151,7 @@ namespace libmedia_transfer_protocol {
 			ByteWriter<uint16_t>::WriteBigEndian(data + stun_length, (uint16_t)20);
 			stun_length += 2;
 			CalcHmac((char*)data + stun_length, (char*)data_begin, data_bytes + 20);
-			// ¼ÆËãÍê³Éºó£¬»Ö¸´Êµ¼Ê³¤¶È
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Éºó£¬»Ö¸ï¿½Êµï¿½Ê³ï¿½ï¿½ï¿½
 			paylod_len = data_bytes + (20+4) + (4 + 4);
 			ByteWriter<uint16_t>::WriteBigEndian(data_begin + 2, paylod_len);
 			//data += (4 + 20);
@@ -172,12 +172,17 @@ namespace libmedia_transfer_protocol {
 		}
 		std::string Stun::LocalUFrag()
 		{
+			//LIBRTCP_LOG(LS_INFO) << "ufrag =" << user_name_;
 			auto pos = user_name_.find_first_of(':');
 			if (pos != std::string::npos)
 			{
 				return user_name_.substr(0, pos);
 			}
 			return std::string();
+		}
+		std::string Stun::PassWord()
+		{
+			return password_;
 		}
 		void Stun::SetPassword(const std::string &pwd)
 		{

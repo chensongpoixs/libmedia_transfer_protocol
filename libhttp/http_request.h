@@ -350,7 +350,13 @@ namespace  libmedia_transfer_protocol {
 			 * @param c true表示分块传输
 			 */
 			void SetIsChunked(bool c);
-
+			/**
+			 * @brief 创建200错误响应
+			 * @return 200   Request响应对象
+			 *
+			 * 包含CORS头部，允许跨域访问
+			 */
+			static std::shared_ptr< HttpRequest> NewHttp200Response();
 			/**
 			 * @brief 创建400错误响应
 			 * @return 400 Bad Request响应对象

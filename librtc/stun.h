@@ -275,6 +275,8 @@ namespace libmedia_transfer_protocol {
 			*  @note 用于ICE连接验证
 			*/
 			std::string LocalUFrag();
+
+			std::string PassWord();
 			
 			/**
 			*  @brief 设置密码（Set Password）

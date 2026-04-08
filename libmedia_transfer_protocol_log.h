@@ -97,7 +97,7 @@ namespace libmedia_transfer_protocol
 
 }
 
-//ÓÃ·¨: PrintD("%d + %s = %c", 1 "2", 'c');  [AUTO-TRANSLATED:1217cc82]
+//ï¿½Ã·ï¿½: PrintD("%d + %s = %c", 1 "2", 'c');  [AUTO-TRANSLATED:1217cc82]
 //Usage: PrintD("%d + %s = %c", 1, "2", 'c');
 #define PrintLog(level, ...) ::libmedia_transfer_protocol::printLog(  level, __FILE__, FUNCTION, __LINE__, ##__VA_ARGS__)
 

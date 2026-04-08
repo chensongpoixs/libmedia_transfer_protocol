@@ -358,7 +358,7 @@ namespace libmedia_transfer_protocol
 
                 }
 #else 
-                // EINPROGRESS Óë winÉÏWinSock2.hÖÐµÄÍøÂçºê³åÍ»ÁË
+                // EINPROGRESS ï¿½ï¿½ winï¿½ï¿½WinSock2.hï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í»ï¿½ï¿½
                 if (ret < 0 && errno != 112/*EINPROGRESS*/)
                 {
                     MS_THROW_ERROR("usrsctp_connect() failed: %s", std::strerror(errno));
@@ -952,7 +952,7 @@ namespace libmedia_transfer_protocol
                 if (notification->sn_strreset_event.strreset_flags & SCTP_STREAM_RESET_OUTGOING_SSN)
                     outgoing = true;
 
-                //todo ´òÓ¡sctpµ÷ÊÔÐÅÏ¢
+                //todo ï¿½ï¿½Ó¡sctpï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
                 if (false /*MS_HAS_DEBUG_TAG(sctp)*/)
                 {
                     std::string streamIds;
