@@ -27,6 +27,7 @@
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <net/if.h>
 #endif
 
 namespace libmedia_transfer_protocol {
