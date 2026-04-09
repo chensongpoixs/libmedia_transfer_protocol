@@ -386,6 +386,15 @@ namespace libmedia_transfer_protocol {
 		{
 			server_addr_ = addr;
 		}
+
+		void RtcSdp::SetServerExternPort(uint16_t port)
+		{
+			server_extern_port_ = port;
+		}
+		void RtcSdp::SetServerExternAddr(const std::string& addr)
+		{
+			server_extern_addr_ = addr;
+		}
 		void RtcSdp::SetVideoSsrc(uint32_t ssrc)
 		{
 			video_ssrc_ = ssrc;
@@ -462,8 +471,20 @@ namespace libmedia_transfer_protocol {
 					<< " " << finger_print.value << "\n";
 			}
 			
-
-
+			std::stringstream candidate_prints;
+			candidate_prints << "a=candidate:0 1 udp 2130706431 " << server_addr_ << " " << server_port_ << " typ host generation 0\n";
+			// a=candidate:4234997325 1 udp 2043278322 192.0.2.172 44323 typ host
+			// 通过 STUN 服务器获取的、经 NAT 映射后的公网地址。它必须包含 raddr 和 rport 字段，用于指明映射前的本地基础地址
+			// a=candidate:842163049 1 udp 1677729535 203.0.113.5 62005 typ srflx raddr 192.0.2.172 rport 44323
+			if (server_extern_addr_.size() > 1)
+			{
+				candidate_prints << "a=candidate:842163049 1 udp 1677729535 " << server_extern_addr_ << " " << server_extern_port_ << " typ srflx raddr "<< server_addr_ << " rport " << server_port_ << "\n";
+			}
+			
+			// 由对等端在连通性检查过程中发现的地址，它的格式与 srflx 类似，也包含基础地址映射信息
+			// a=candidate:2156732508 1 udp 1686052607 198.51.100.8 51987 typ prflx raddr 192.0.2.172 rport 44323
+			// 通过 TURN 服务器中继流量的地址。它必须包含 raddr 和 rport 字段，且 raddr 通常是 TURN 服务器的公网 IP
+			// a=candidate:3156894721 1 udp 41885439 192.0.2.88 50011 typ relay raddr 203.0.113.1 rport 3478
 			if (video_payload_type_ != -1 && audio_payload_type_ != -1)
 			{
 				ss << "m=audio 9 UDP/TLS/RTP/SAVPF " << audio_payload_type_ << "\n";
@@ -473,8 +494,9 @@ namespace libmedia_transfer_protocol {
 				ss << "a=ice-ufrag:" << local_ufrag_ << "\n";
 				ss << "a=ice-pwd:" << local_passwd_ << "\n";
 
-				ss << "a=candidate:0 1 udp 2130706431 " << server_addr_ << " " << server_port_ << " typ host generation 0\n";
+				//ss << "a=candidate:0 1 udp 2130706431 " << server_addr_ << " " << server_port_ << " typ host generation 0\n";
 				//ss << "a=fingerprint:sha-256 " << fingerprint_ << "\n";
+				ss << candidate_prints.str();
 				ss << finger_prints.str();
 				ss << "a=setup:passive\n"; 
 				
@@ -542,8 +564,15 @@ namespace libmedia_transfer_protocol {
 				//ss << "a=fingerprint:sha-256 " << fingerprint_ << "\n";
 				ss << finger_prints.str();
 				ss << "a=setup:passive\n";
-				ss << "a=candidate:0 1 udp 2130706431 " << server_addr_ << " " << server_port_ << " typ host generation 0\n";
-				
+				//ss << "a=candidate:0 1 udp 2130706431 " << server_addr_ << " " << server_port_ << " typ host generation 0\n";
+				ss << candidate_prints.str();
+				// a=candidate:4234997325 1 udp 2043278322 192.0.2.172 44323 typ host
+				// 通过 STUN 服务器获取的、经 NAT 映射后的公网地址。它必须包含 raddr 和 rport 字段，用于指明映射前的本地基础地址
+				// a=candidate:842163049 1 udp 1677729535 203.0.113.5 62005 typ srflx raddr 192.0.2.172 rport 44323
+				// 由对等端在连通性检查过程中发现的地址，它的格式与 srflx 类似，也包含基础地址映射信息
+				// a=candidate:2156732508 1 udp 1686052607 198.51.100.8 51987 typ prflx raddr 192.0.2.172 rport 44323
+				// 通过 TURN 服务器中继流量的地址。它必须包含 raddr 和 rport 字段，且 raddr 通常是 TURN 服务器的公网 IP
+				// a=candidate:3156894721 1 udp 41885439 192.0.2.88 50011 typ relay raddr 203.0.113.1 rport 3478
 				if (rtc_sdp_type_ == kRtcSdpPlay)
 				{
 					ss << "a=sendonly\n";

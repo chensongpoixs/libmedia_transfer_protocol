@@ -188,6 +188,9 @@ namespace libmedia_transfer_protocol {
 			
 			/** 设置服务器地址 */
 			void SetServerAddr(const std::string &addr);
+
+			void SetServerExternPort(uint16_t port);
+			void SetServerExternAddr(const std::string& addr);
 			
 			/** 设置视频SSRC */
 			void SetVideoSsrc(uint32_t ssrc);
@@ -242,9 +245,12 @@ namespace libmedia_transfer_protocol {
 			int32_t video_ssrc_{ 0 };
 			int32_t video_rtx_ssrc_{ 0 };
 			int32_t audio_ssrc_{ 0 };
-			int16_t server_port_{ 0 };
+			uint16_t server_port_{ 0 };
 			std::string server_addr_;
 			std::string stream_name_;
+
+			std::string server_extern_addr_{""};
+			uint16_t server_extern_port_{ 0 };
 
 
 			RtcSdpType      rtc_sdp_type_{ kRtcSdpPlay };

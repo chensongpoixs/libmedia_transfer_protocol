@@ -128,9 +128,10 @@ rtp_rtcp/rtp_header_extension_map.cpp
 
  
 add_library(${PROJECT_NAME}   STATIC  ${libmedia_transfer_protocol_source})
- 
 
- 
+if (WIN32)
+	target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32 iphlpapi)
+endif()
 
 
 #set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /SAFESEH:NO")
