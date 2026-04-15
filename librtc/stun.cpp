@@ -49,7 +49,7 @@ namespace libmedia_transfer_protocol {
 			transcation_id_.assign((char *)data, 12);
 			data += 12;
 
-			LIBRTC_LOG(LS_WARNING) << "stun type:" << type_
+			LIBRTC_LOG(LS_INFO) << "stun type:" << type_
 				<< " length:" << stun_length_
 				<< " transcation_id:" << transcation_id_;
 			size -= 20;
