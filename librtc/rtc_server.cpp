@@ -28,12 +28,34 @@ namespace libmedia_transfer_protocol {
 			static const uint8_t kStunmagicCookie[] = { 0x21, 0x12, 0xA4, 0x42 };
 		}
 		 RtcServer::RtcServer( ) 
-			 :udp_server_(new  libnetwork::UdpServer())
+			 :listen_udp_port_(0)
+			 ,udp_server_(new  libnetwork::UdpServer())
 		{
 
 			 // = std::make_unique<libnetwork::UdpServer>();
 			 udp_server_->SignalReadPacket.connect(this, &RtcServer::OnRecvPacket);
 			 udp_server_->SignalSyncReadPacket.connect(this, &RtcServer::OnRecvPacket);
+
+
+
+
+
+#if 0
+			 rtc_server->SignalStunPacket.connect(&RtcService::GetInstance(), &RtcService::OnStun);
+			 rtc_server->SignalDtlsPacket.connect(&RtcService::GetInstance(), &RtcService::OnDtls);
+			 rtc_server->SignalRtpPacket.connect(&RtcService::GetInstance(), &RtcService::OnRtp);
+			 rtc_server->SignalRtcpPacket.connect(&RtcService::GetInstance(), &RtcService::OnRtcp);
+
+			 /// <summary>
+			 /// 
+			 /// </summary>
+			 rtc_server->SignalSyncStunPacket.connect(&RtcService::GetInstance(), &RtcService::OnStun);
+			 rtc_server->SignalSyncDtlsPacket.connect(&RtcService::GetInstance(), &RtcService::OnDtls);
+			 rtc_server->SignalSyncRtpPacket.connect(&RtcService::GetInstance(), &RtcService::OnRtp);
+			 rtc_server->SignalSyncRtcpPacket.connect(&RtcService::GetInstance(), &RtcService::OnRtcp);
+
+#endif 
+			 
 		}
 		 RtcServer::~RtcServer()
 		 {
@@ -49,7 +71,7 @@ namespace libmedia_transfer_protocol {
 		 bool RtcServer::Start(const char * ip, uint16_t port)
 		 {
 
-
+			 listen_udp_port_ = port;
 			 return udp_server_->Startup(ip, port);
 			  
 		 }

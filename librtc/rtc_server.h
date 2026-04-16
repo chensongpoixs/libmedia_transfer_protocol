@@ -217,6 +217,10 @@ namespace libmedia_transfer_protocol {
 			*/
 			bool Start(const char * ip, uint16_t port);
 
+
+
+
+			uint32_t GetListenUdpPort() const { return listen_udp_port_; }
 		public:
 			/**
 			*  @brief 发送数据包（Send Packet）
@@ -616,6 +620,7 @@ namespace libmedia_transfer_protocol {
 			bool IsRtcp(const uint8_t * data, int32_t len);
 		 
 		private:
+			uint32_t                                    listen_udp_port_{0};
 			std::unique_ptr<libnetwork::UdpServer>      udp_server_;  ///< UDP服务器，负责UDP数据包的收发
 
 		};
