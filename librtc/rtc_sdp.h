@@ -171,6 +171,11 @@ namespace libmedia_transfer_protocol {
 			/** 获取音频负载类型 */
 			int32_t GetAudioPayloadType() const;
 
+			/** 获取音频 RTX 负载类型（rtx/48000 apt=audio_pt）；-1 表示未协商
+			 *  @date 2025-11-12  音频 RTX 支持
+			 */
+			int32_t GetAudioPayloadRtxType() const;
+
 			/** 设置本地证书指纹 */
 			void SetLocalFingerprint(const std::vector<libssl::Fingerprint> &fps);
 			
@@ -197,6 +202,11 @@ namespace libmedia_transfer_protocol {
 			
 			/** 设置视频RTX SSRC */
 			void SetVideoRtxSsrc(uint32_t ssrc);
+
+			/** 设置音频RTX SSRC（可选；仅在 Offer 声明 rtx/48000 时生效）
+			 *  @date 2025-11-12
+			 */
+			void SetAudioRtxSsrc(uint32_t ssrc);
 			
 			/** 设置音频SSRC */
 			void SetAudioSsrc(int32_t ssrc);
@@ -215,6 +225,11 @@ namespace libmedia_transfer_protocol {
 			
 			/** 获取视频RTX SSRC */
 			uint32_t VideoRtxSsrc() const;
+
+			/** 获取音频RTX SSRC；0 表示未启用
+			 *  @date 2025-11-12
+			 */
+			uint32_t AudioRtxSsrc() const;
 
 			/** 获取音频SSRC */
 			uint32_t AudioSsrc() const;
@@ -245,6 +260,10 @@ namespace libmedia_transfer_protocol {
 			int32_t video_ssrc_{ 0 };
 			int32_t video_rtx_ssrc_{ 0 };
 			int32_t audio_ssrc_{ 0 };
+			/// 音频 RTX：仅 Offer 声明 rtx/48000 apt=audio_pt 时启用
+			/// @date 2025-11-12
+			int32_t audio_payload_rtx_type_{ -1 };
+			int32_t audio_rtx_ssrc_{ 0 };
 			uint16_t server_port_{ 0 };
 			std::string server_addr_;
 			std::string stream_name_;

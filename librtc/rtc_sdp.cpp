@@ -208,6 +208,11 @@ namespace libmedia_transfer_protocol {
 						//video_payload_rtc_type_ = pt;
 						LIBRTC_LOG(LS_INFO) << "pt:" << pt;
 					}
+					// @date 2025-11-12  识别音频 RTX 提议（rtx/48000），pt 延后在 fmtp apt=audio_pt 再绑定
+					else if (audio_payload_rtx_type_ == -1 && name == "rtx/48000")
+					{
+						LIBRTC_LOG(LS_INFO) << "audio rtx rtpmap candidate pt:" << pt;
+					}
 				}
 				else if (StringUtils::StartsWith(line, fmtp))
 				{
@@ -229,6 +234,12 @@ namespace libmedia_transfer_protocol {
 					{
 						LIBRTC_LOG(LS_INFO) << "fmtp:" << fmtp << ", apt : " << apt;
 						video_payload_rtx_type_ = fmtp;
+					}
+					// @date 2025-11-12  音频 RTX apt 绑定
+					else if (audio_payload_type_ != -1 && apt == audio_payload_type_)
+					{
+						LIBRTC_LOG(LS_INFO) << "audio rtx fmtp:" << fmtp << ", apt:" << apt;
+						audio_payload_rtx_type_ = fmtp;
 					}
 
 				}
@@ -285,6 +296,16 @@ namespace libmedia_transfer_protocol {
 					{
 						video_rtx_ssrc_ = type_ssrc;
 						LIBRTC_LOG(LS_INFO) << "video rtx ssrc:" << video_rtx_ssrc_;
+					}
+					// @date 2025-11-12  第四个不同的 ssrc 视作音频 RTX ssrc（仅当 Offer 声明音频 RTX 时）
+					else if (audio_payload_rtx_type_ != -1
+						&& 0 == audio_rtx_ssrc_
+						&& type_ssrc != audio_ssrc_
+						&& type_ssrc != video_ssrc_
+						&& type_ssrc != video_rtx_ssrc_)
+					{
+						audio_rtx_ssrc_ = type_ssrc;
+						LIBRTC_LOG(LS_INFO) << "audio rtx ssrc:" << audio_rtx_ssrc_;
 					}
 					else
 					{
@@ -346,6 +367,11 @@ namespace libmedia_transfer_protocol {
 		{
 			return video_payload_rtx_type_;
 		}
+		// @date 2025-11-12  音频 RTX accessor
+		int32_t RtcSdp::GetAudioPayloadRtxType() const
+		{
+			return audio_payload_rtx_type_;
+		}
 		int32_t RtcSdp::GetAudioPayloadType() const
 		{
 			return  audio_payload_type_;
@@ -403,6 +429,11 @@ namespace libmedia_transfer_protocol {
 		{
 			video_rtx_ssrc_ = ssrc;
 		}
+		// @date 2025-11-12  音频 RTX ssrc setter
+		void RtcSdp::SetAudioRtxSsrc(uint32_t ssrc)
+		{
+			audio_rtx_ssrc_ = ssrc;
+		}
 		void RtcSdp::SetAudioSsrc(int32_t ssrc)
 		{
 			audio_ssrc_ = ssrc;
@@ -422,6 +453,11 @@ namespace libmedia_transfer_protocol {
 		uint32_t RtcSdp::VideoRtxSsrc() const
 		{
 			return video_rtx_ssrc_;
+		}
+		// @date 2025-11-12  音频 RTX ssrc getter
+		uint32_t RtcSdp::AudioRtxSsrc() const
+		{
+			return audio_rtx_ssrc_;
 		}
 		uint32_t RtcSdp::AudioSsrc() const
 		{
@@ -487,7 +523,16 @@ namespace libmedia_transfer_protocol {
 			// a=candidate:3156894721 1 udp 41885439 192.0.2.88 50011 typ relay raddr 203.0.113.1 rport 3478
 			if (video_payload_type_ != -1 && audio_payload_type_ != -1)
 			{
-				ss << "m=audio 9 UDP/TLS/RTP/SAVPF " << audio_payload_type_ << "\n";
+				// @date 2025-11-12  如协商音频 RTX，m= 行追加 rtx_pt
+				if (audio_payload_rtx_type_ > 0)
+				{
+					ss << "m=audio 9 UDP/TLS/RTP/SAVPF " << audio_payload_type_
+						<< " " << audio_payload_rtx_type_ << "\n";
+				}
+				else
+				{
+					ss << "m=audio 9 UDP/TLS/RTP/SAVPF " << audio_payload_type_ << "\n";
+				}
 				ss << "c=IN IP4 0.0.0.0\n";
 				
 				ss << "a=mid:0\n";
@@ -519,6 +564,13 @@ namespace libmedia_transfer_protocol {
 				ss << "a=rtcp-fb:" << audio_payload_type_ << " transport-cc\n";
 				ss << "a=rtcp-fb:" << audio_payload_type_ << " nack\n";
 
+				// @date 2025-11-12  音频 RTX 声明（rtx/48000 + apt=audio_pt），仅在 Offer 协商到时启用
+				if (audio_payload_rtx_type_ > 0)
+				{
+					ss << "a=rtpmap:" << audio_payload_rtx_type_ << " rtx/48000\n";
+					ss << "a=fmtp:" << audio_payload_rtx_type_ << " apt=" << audio_payload_type_ << "\n";
+				}
+
 				// twcc 
 				/*
 				* audio : 
@@ -533,11 +585,22 @@ namespace libmedia_transfer_protocol {
 
 				if (rtc_sdp_type_ == kRtcSdpPlay)
 				{
+					// @date 2025-11-12  音频 RTX：启用时追加 ssrc-group FID 与 rtx ssrc 描述
+					if (audio_payload_rtx_type_ > 0 && audio_rtx_ssrc_ != 0)
+					{
+						ss << "a=ssrc-group:FID " << audio_ssrc_ << " " << audio_rtx_ssrc_ << "\n";
+					}
 
 					ss << "a=ssrc:" << audio_ssrc_ << " cname:" << stream_name_ << "\n";
 					ss << "a=ssrc:" << audio_ssrc_ << " msid:" << stream_name_ << " " << stream_name_ << "_audio\n";
 					ss << "a=ssrc:" << audio_ssrc_ << " mslabel:" << stream_name_ << "\n";
 					ss << "a=ssrc:" << audio_ssrc_ << " label:" << stream_name_ << "_audio\n";
+
+					if (audio_payload_rtx_type_ > 0 && audio_rtx_ssrc_ != 0)
+					{
+						ss << "a=ssrc:" << audio_rtx_ssrc_ << " cname:" << stream_name_ << "\n";
+						ss << "a=ssrc:" << audio_rtx_ssrc_ << " msid:" << stream_name_ << " " << stream_name_ << "_audio\n";
+					}
 				}
 			}
 			if (video_payload_type_ != -1)

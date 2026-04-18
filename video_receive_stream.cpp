@@ -80,7 +80,7 @@ namespace libmedia_transfer_protocol {
 	}
 	void VideoReceiveStream::OnAudioFrame(rtc::CopyOnWriteBuffer frame, int64_t  pts)
 	{
-		//·ÖÀë adts 
+		//ï¿½ï¿½ï¿½ï¿½ adts 
 #if 0
 
 		uint8_t  pdata[7] = {
